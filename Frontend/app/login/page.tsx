@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { FormEvent, useState } from "react";
 import { useStore } from "@/lib/useStore";
+import toast from "react-hot-toast";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -18,7 +19,9 @@ export default function LoginPage() {
     setError("");
 
     if (!email || !password) {
-      setError("Please enter email and password.");
+      const message = "Please enter email and password.";
+      setError(message);
+      toast.error(message);
       return;
     }
 
@@ -27,11 +30,13 @@ export default function LoginPage() {
         email,
         password,
       });
+      toast.success("Signed in successfully.");
       router.push("/");
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Unable to sign in. Please try again.";
       setError(message);
+      toast.error(message);
     }
   };
 

@@ -4,7 +4,6 @@ import { useStore } from "@/lib/useStore";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 
 export default function CartPage() {
   const router = useRouter();
@@ -14,10 +13,6 @@ export default function CartPage() {
   const removeFromCart = useStore((state) => state.removeFromCart);
   const resetCart = useStore((state) => state.resetCart);
   const isLoggedIn = useStore((state) => state.isLoggedIn);
-  const token = useStore((state) => state.token);
-
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const total = cartProduct.reduce(
     (sum, item) => sum + (item.price || 0) * (item.quantity || 1),
@@ -28,37 +23,14 @@ export default function CartPage() {
     0
   );
 
-  const handleCheckout = async () => {
-    setError(null);
-
-    if (!isLoggedIn || !token) {
+  const handleCheckout = () => {
+    if (!isLoggedIn) {
       router.push("/login");
       return;
     }
 
-    if (!cartProduct.length || submitting) return;
-
-    setSubmitting(true);
-    try {
-      const items = cartProduct.map((item) => ({
-        productId: item.id,
-        quantity: item.quantity || 1,
-        price: item.price || 0,
-      }));
-
-      const { createOrder } = await import("@/service/api");
-      await createOrder({ items, token });
-      resetCart();
-      router.push("/orders");
-    } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "Unable to place order. Please try again.";
-      setError(message);
-    } finally {
-      setSubmitting(false);
-    }
+    if (!cartProduct.length) return;
+    router.push("/checkout");
   };
 
   if (cartProduct.length === 0) {
@@ -177,18 +149,12 @@ export default function CartPage() {
               <span>${total.toFixed(2)}</span>
             </div>
           </div>
-          {error && (
-            <p className="text-xs text-red-600 mb-2" aria-live="polite">
-              {error}
-            </p>
-          )}
           <button
             type="button"
             onClick={handleCheckout}
-            disabled={submitting}
             className="w-full mt-2 py-2 px-4 text-sm font-medium rounded-full bg-amazonOrange hover:bg-amazonOrangeDark disabled:opacity-60 disabled:cursor-not-allowed text-black"
           >
-            {submitting ? "Placing order..." : "Proceed to checkout"}
+            Proceed to checkout
           </button>
         </div>
       </div>

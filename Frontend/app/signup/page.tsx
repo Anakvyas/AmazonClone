@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { FormEvent, useState } from "react";
 import { useStore } from "@/lib/useStore";
+import toast from "react-hot-toast";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -20,12 +21,16 @@ export default function SignupPage() {
     setError("");
 
     if (!name || !email || !password || !confirmPassword) {
-      setError("Please fill in all fields.");
+      const message = "Please fill in all fields.";
+      setError(message);
+      toast.error(message);
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      const message = "Passwords do not match.";
+      setError(message);
+      toast.error(message);
       return;
     }
 
@@ -35,6 +40,7 @@ export default function SignupPage() {
         email,
         password,
       });
+      toast.success("Account created successfully.");
       router.push("/");
     } catch (err) {
       const message =
@@ -42,6 +48,7 @@ export default function SignupPage() {
           ? err.message
           : "Unable to create account. Please try again.";
       setError(message);
+      toast.error(message);
     }
   };
 
