@@ -1,5 +1,5 @@
 const prisma = require("../config/prisma")
-const mailer = require("../config/mailer")
+// const mailer = require("../config/mailer")
 
 exports.createOrder = async(userId,items,email)=>{
 
@@ -43,7 +43,7 @@ exports.createOrder = async(userId,items,email)=>{
 
  })
 
- await mailer.sendOrderEmail(email,order.id)
+//  await mailer.sendOrderEmail(email,order.id)
 
  return order
 
