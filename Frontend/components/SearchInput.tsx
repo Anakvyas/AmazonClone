@@ -1,9 +1,10 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { startTransition, useEffect, useRef, useState, useTransition } from "react";
 import { HiOutlineSearch } from "react-icons/hi";
 import { MdOutlineClose } from "react-icons/md";
 import Link from "next/link";
 import { CiSearch } from "react-icons/ci";
+import { Loader2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Product } from "@/type";
 import CategoryListView from "./CategoryListView";
@@ -13,6 +14,7 @@ const SearchInput = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const [isPending, startRouteTransition] = useTransition();
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") ?? "");
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState(
@@ -42,7 +44,9 @@ const SearchInput = () => {
     }
 
     const queryString = params.toString();
-    router.replace(queryString ? `${pathname}?${queryString}` : pathname);
+    startRouteTransition(() => {
+      router.replace(queryString ? `${pathname}?${queryString}` : pathname);
+    });
   };
 
   useEffect(() => {
@@ -75,8 +79,10 @@ const SearchInput = () => {
   }, [searchQuery, products, selectedCategory]);
 
   useEffect(() => {
-    setSearchQuery(searchParams.get("search") ?? "");
-    setSelectedCategory(searchParams.get("category") ?? "All");
+    startTransition(() => {
+      setSearchQuery(searchParams.get("search") ?? "");
+      setSelectedCategory(searchParams.get("category") ?? "All");
+    });
   }, [searchParams]);
   // Effect to detect click outside
   useEffect(() => {
@@ -137,9 +143,10 @@ const SearchInput = () => {
           updateSearchRoute(searchQuery, selectedCategory);
           setIsInputFocused(false);
         }}
+        disabled={isPending}
         className="w-12 h-full bg-amazonOrange hover:bg-amazonOrangeDark duration-200 cursor-pointer text-black text-2xl flex items-center justify-center absolute right-0 rounded-tr-md rounded-br-md"
       >
-        <HiOutlineSearch />
+        {isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : <HiOutlineSearch />}
       </button>
       {/*  ============= Searchfield start here ========== */}
       {isInputFocused && searchQuery && (

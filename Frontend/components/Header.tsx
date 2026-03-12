@@ -32,7 +32,7 @@ const Header = () => {
             <SlLocationPin className="text-lg text-white" />
             <div className="text-xs">
               <p>Deliver to</p>
-              <p className="text-white font-bold uppercase">USA</p>
+              <p className="text-white font-bold uppercase">India</p>
             </div>
           </div>
           <Suspense fallback={<div className="flex-1 h-10 mx-4 rounded-md bg-white/10" />}>
