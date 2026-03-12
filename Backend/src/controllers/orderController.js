@@ -30,7 +30,21 @@ exports.getOrderHistory = async(req,res,next)=>{
 
   const orders = await prisma.order.findMany({
     where:{userId:req.userId},
-    include:{items:true}
+    include:{
+      items:{
+        include:{
+          product:{
+            include:{
+              images:true,
+              category:true
+            }
+          }
+        }
+      }
+    },
+    orderBy:{
+      createdAt:"desc"
+    }
   })
 
   res.json({

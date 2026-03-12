@@ -307,6 +307,7 @@ export interface OrderDto {
     productId: number;
     quantity: number;
     price: number;
+    product: BackendProduct;
   }[];
 }
 

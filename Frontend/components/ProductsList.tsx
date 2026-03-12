@@ -31,7 +31,10 @@ const ProductsList = ({
   const addToCart = useStore((state) => state.addToCart);
   const addToFavorite = useStore((state) => state.addToFavorite);
 
-  const handleAddToCart = async (productId: number, product: ReturnType<typeof mapBackendProductToUi>) => {
+  const handleAddToCart = async (
+    productId: number,
+    product: ReturnType<typeof mapBackendProductToUi>
+  ) => {
     setActiveCartId(productId);
     await addToCart(product);
     toast.success(`${product.title} added to cart`);
@@ -83,7 +86,7 @@ const ProductsList = ({
 
     let isCancelled = false;
 
-    const loadNextPage = async () => {
+    const loadMoreProducts = async () => {
       try {
         const nextPage = page + 1;
         const response = await getProducts({
@@ -119,7 +122,7 @@ const ProductsList = ({
       }
     };
 
-    void loadNextPage();
+    void loadMoreProducts();
 
     return () => {
       isCancelled = true;
@@ -204,8 +207,22 @@ const ProductsList = ({
         })}
       </div>
       {hasMore ? (
-        <div ref={sentinelRef} className="py-4 text-center text-sm text-gray-500">
-          {loadingMore ? "Loading more products..." : "Scroll to load more"}
+        <div className="space-y-3 py-4 text-center text-sm text-gray-500">
+          <div ref={sentinelRef}>
+            {loadingMore ? "Loading more products..." : "Scroll to load more"}
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (!loadingMore) {
+                setLoadingMore(true);
+              }
+            }}
+            disabled={loadingMore}
+            className="rounded-full border border-gray-300 bg-white px-4 py-2 text-xs font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {loadingMore ? "Loading..." : "Load more products"}
+          </button>
         </div>
       ) : (
         <div className="py-4 text-center text-sm text-gray-500">

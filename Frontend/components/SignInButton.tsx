@@ -14,7 +14,7 @@ const SignInButton = () => {
   return (
     <button
       onClick={handleClick}
-      className="text-xs text-gray-100 flex flex-col justify-center px-2 border border-transparent hover:border-white cursor-pointer duration-300 h-[70%]"
+      className="hidden h-[70%] cursor-pointer flex-col justify-center border border-transparent px-2 text-xs text-gray-100 duration-300 hover:border-white md:flex"
     >
       <span className="text-left text-white font-semibold md:text-gray-100 md:font-normal">
         Hello, sign in

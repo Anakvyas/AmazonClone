@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useStore } from "@/lib/useStore";
 import type { OrderDto } from "@/service/api";
 import { getOrders } from "@/service/api";
@@ -71,7 +72,17 @@ export default function OrdersPage() {
   return (
     <div className="bg-gray-100 min-h-[60vh] px-4 py-10">
       <div className="max-w-5xl mx-auto space-y-4">
-        <h1 className="text-2xl font-semibold">Your Orders</h1>
+        <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h1 className="text-3xl font-semibold text-gray-950">Your Orders</h1>
+            <p className="text-sm text-gray-600">
+              Track your purchases and review what you ordered.
+            </p>
+          </div>
+          <p className="text-sm text-gray-500">
+            {orders.length} order{orders.length === 1 ? "" : "s"} found
+          </p>
+        </div>
         {loading && (
           <p className="text-sm text-gray-600">Loading your orders...</p>
         )}
@@ -80,38 +91,111 @@ export default function OrdersPage() {
             {error}
           </p>
         )}
+        {!loading && !error && orders.length === 0 && (
+          <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center text-sm text-gray-600 shadow-sm">
+            You haven&apos;t placed any orders yet.
+          </div>
+        )}
         <div className="space-y-4">
           {orders.map((order) => (
             <div
               key={order.id}
-              className="bg-white border border-gray-200 rounded-md p-4 shadow-sm"
+              className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
             >
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                <div className="text-sm text-gray-700 space-y-1">
-                  <p>
-                    <span className="font-semibold">Order placed:</span>{" "}
+              <div className="grid gap-4 border-b border-gray-200 bg-gray-50 px-5 py-4 text-sm text-gray-700 md:grid-cols-[repeat(4,minmax(0,1fr))]">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-gray-500">
+                    Order placed
+                  </p>
+                  <p className="mt-1 font-semibold">
                     {new Date(order.createdAt).toLocaleDateString()}
                   </p>
-                  <p>
-                    <span className="font-semibold">Total:</span> $
-                    {order.totalPrice.toFixed(2)}
-                  </p>
-                  <p>
-                    <span className="font-semibold">Order #:</span> {order.id}
-                  </p>
                 </div>
-                <div className="text-sm text-gray-700 text-right">
-                  <p className="font-semibold">Completed</p>
-                  <p className="text-xs text-gray-500">
-                    {order.items.length} item
-                    {order.items.length > 1 ? "s" : ""}
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-gray-500">
+                    Total
                   </p>
-                  <button
-                    type="button"
-                    className="mt-2 inline-flex justify-center py-1 px-3 text-xs font-medium rounded-full border border-gray-300 hover:bg-gray-50"
+                  <p className="mt-1 font-semibold">${order.totalPrice.toFixed(2)}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-gray-500">
+                    Ship to
+                  </p>
+                  <p className="mt-1 font-semibold">Saved address</p>
+                </div>
+                <div className="md:text-right">
+                  <p className="text-xs uppercase tracking-wide text-gray-500">
+                    Order #
+                  </p>
+                  <p className="mt-1 font-semibold">{order.id}</p>
+                </div>
+              </div>
+
+              <div className="space-y-4 p-5">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="font-semibold text-gray-950">Completed</p>
+                    <p className="text-xs text-gray-500">
+                      {order.items.reduce(
+                        (sum, item) => sum + item.quantity,
+                        0
+                      )}{" "}
+                      item
+                      {order.items.reduce((sum, item) => sum + item.quantity, 0) > 1
+                        ? "s"
+                        : ""}
+                    </p>
+                  </div>
+                  <Link
+                    href={`/orders/confirmation?orderId=${order.id}`}
+                    className="inline-flex rounded-full border border-gray-300 px-4 py-2 text-xs font-medium text-gray-700 transition hover:bg-gray-50"
                   >
                     View order details
-                  </button>
+                  </Link>
+                </div>
+
+                <div className="space-y-4">
+                  {order.items.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex flex-col gap-4 rounded-2xl border border-gray-200 p-4 md:flex-row"
+                    >
+                      <div className="relative h-24 w-full overflow-hidden rounded-xl bg-gray-50 md:w-24">
+                        <Image
+                          src={item.product.images[0]?.url || "/favicon.ico"}
+                          alt={item.product.name}
+                          fill
+                          className="object-contain p-2"
+                        />
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <p className="font-semibold text-gray-950">
+                          {item.product.name}
+                        </p>
+                        <p className="text-sm text-gray-500 line-clamp-2">
+                          {item.product.description}
+                        </p>
+                        <p className="text-xs uppercase tracking-wide text-gray-500">
+                          {item.product.category.name}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-700">
+                          <span>
+                            Qty:{" "}
+                            <span className="font-semibold">{item.quantity}</span>
+                          </span>
+                          <span>
+                            Price:{" "}
+                            <span className="font-semibold">
+                              ${item.price.toFixed(2)}
+                            </span>
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-sm font-semibold text-gray-950 md:text-right">
+                        ${(item.price * item.quantity).toFixed(2)}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
