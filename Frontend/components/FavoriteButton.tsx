@@ -9,7 +9,7 @@ const FavoriteButton = () => {
 
   return (
     <Link
-      href={"/favorite"}
+      href={"/wishlist"}
       className="relative hidden h-[70%] cursor-pointer flex-col justify-center border border-transparent px-2 text-xs text-gray-100 duration-300 hover:border-white xl:inline-flex"
     >
       <p>Marked</p>
