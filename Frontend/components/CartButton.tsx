@@ -3,10 +3,14 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import { cartIcon } from "../assets";
-import { store } from "../lib/store";
+import { useStore } from "@/lib/useStore";
 
 const CartButton = () => {
-  const { cartProduct } = store();
+  const cartProduct = useStore((state) => state.cartProduct);
+  const cartCount = cartProduct.reduce(
+    (sum, item) => sum + (item.quantity || 1),
+    0
+  );
 
   return (
     <Link
@@ -19,8 +23,8 @@ const CartButton = () => {
         className="w-auto object-cover h-8"
       />
       <p className="text-xs text-white font-bold mt-3">Cart</p>
-      <span className="absolute text-amazonOrangeDark text-sm top-2 left-[29px] font-semibold">
-        {cartProduct ? cartProduct.length : 0}
+      <span className="absolute left-6 top-0 flex min-w-5 items-center justify-center rounded-md border border-gray-400 bg-[#131921] px-1 text-xs font-semibold text-amazonOrangeDark">
+        {cartCount}
       </span>
     </Link>
   );
