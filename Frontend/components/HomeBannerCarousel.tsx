@@ -76,7 +76,7 @@ export default function HomeBannerCarousel({
               <Image
                 src={item.source}
                 alt={item.title}
-                className="h-[240px] w-full object-cover object-[center_15%] md:h-[360px] lg:h-[460px]"
+                className="h-[240px] w-full object-cover object-[center_10%] md:h-[360px] lg:h-[460px]"
                 priority
               />
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#f3f4f6] via-[#f3f4f6]/70 to-transparent" />

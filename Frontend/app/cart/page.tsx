@@ -23,6 +23,10 @@ export default function CartPage() {
     (sum, item) => sum + (item.price || 0) * (item.quantity || 1),
     0
   );
+  const itemCount = cartProduct.reduce(
+    (sum, item) => sum + (item.quantity || 1),
+    0
+  );
 
   const handleCheckout = async () => {
     setError(null);
@@ -118,7 +122,7 @@ export default function CartPage() {
                       onClick={() => decreaseQuantity(item.id)}
                       className="text-amazonBlue hover:text-amazonOrange text-xs"
                     >
-                      -
+                      {item.quantity === 1 ? "Remove" : "-"}
                     </button>
                     <button
                       type="button"
@@ -151,7 +155,7 @@ export default function CartPage() {
               Clear cart
             </button>
             <p className="text-sm">
-              Subtotal ({cartProduct.length} items):{" "}
+              Subtotal ({itemCount} items):{" "}
               <span className="font-bold">
                 ${total.toFixed(2)}
               </span>
@@ -159,12 +163,20 @@ export default function CartPage() {
           </div>
         </div>
         <div className="bg-white p-4 rounded-md shadow-sm h-fit">
-          <p className="text-sm mb-2">
-            Subtotal ({cartProduct.length} items):{" "}
-            <span className="font-bold">
-              ${total.toFixed(2)}
-            </span>
-          </p>
+          <div className="space-y-2 text-sm">
+            <div className="flex items-center justify-between">
+              <span>Subtotal ({itemCount} items)</span>
+              <span className="font-semibold">${total.toFixed(2)}</span>
+            </div>
+            <div className="flex items-center justify-between text-gray-500">
+              <span>Shipping</span>
+              <span>Free</span>
+            </div>
+            <div className="flex items-center justify-between border-t border-gray-200 pt-2 text-base font-bold">
+              <span>Total</span>
+              <span>${total.toFixed(2)}</span>
+            </div>
+          </div>
           {error && (
             <p className="text-xs text-red-600 mb-2" aria-live="polite">
               {error}

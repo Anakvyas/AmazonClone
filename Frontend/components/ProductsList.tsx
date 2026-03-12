@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import { useStore } from "@/lib/useStore";
 import { BackendProduct, getProducts, mapBackendProductToUi } from "@/service/api";
 
@@ -23,11 +24,22 @@ const ProductsList = ({
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeCartId, setActiveCartId] = useState<number | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
 
   const addToCart = useStore((state) => state.addToCart);
   const addToFavorite = useStore((state) => state.addToFavorite);
+
+  const handleAddToCart = async (productId: number, product: ReturnType<typeof mapBackendProductToUi>) => {
+    setActiveCartId(productId);
+    await addToCart(product);
+    toast.success(`${product.title} added to cart`);
+
+    window.setTimeout(() => {
+      setActiveCartId((current) => (current === productId ? null : current));
+    }, 900);
+  };
 
   useEffect(() => {
     setProducts(initialProducts);
@@ -166,11 +178,15 @@ const ProductsList = ({
                   type="button"
                   onClick={(event) => {
                     event.stopPropagation();
-                    void addToCart(uiProduct);
+                    void handleAddToCart(product.id, uiProduct);
                   }}
-                  className="flex-1 py-1.5 px-3 rounded-full bg-amazonOrange hover:bg-amazonOrangeDark text-xs font-medium text-black"
+                  className={`flex-1 rounded-full px-3 py-1.5 text-xs font-medium text-black transition ${
+                    activeCartId === product.id
+                      ? "bg-green-400 shadow-lg shadow-green-200"
+                      : "bg-amazonOrange hover:bg-amazonOrangeDark"
+                  }`}
                 >
-                  Add to Cart
+                  {activeCartId === product.id ? "Added" : "Add to Cart"}
                 </button>
                 <button
                   type="button"

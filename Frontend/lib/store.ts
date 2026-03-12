@@ -122,12 +122,17 @@ export const store = create<StoreType>()(
           );
 
           if (existingProduct) {
+            const nextQuantity = (existingProduct.quantity ?? 1) - 1;
+
             return {
-              cartProduct: state.cartProduct.map((p) =>
-                p.id === productId
-                  ? { ...p, quantity: Math.max((p?.quantity ?? 1) - 1, 1) }
-                  : p
-              ),
+              cartProduct:
+                nextQuantity <= 0
+                  ? state.cartProduct.filter((p) => p.id !== productId)
+                  : state.cartProduct.map((p) =>
+                      p.id === productId
+                        ? { ...p, quantity: nextQuantity }
+                        : p
+                    ),
             };
           } else {
             return state;

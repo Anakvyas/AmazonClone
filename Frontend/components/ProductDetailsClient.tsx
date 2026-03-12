@@ -7,6 +7,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Eye, ShieldCheck, Star, Truck } from "lucide-react";
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 interface ProductDetailsClientProps {
   product: Product;
@@ -21,6 +22,7 @@ export default function ProductDetailsClient({
   const [selectedImage, setSelectedImage] = useState(
     product.thumbnail || product.images[0] || ""
   );
+  const [cartState, setCartState] = useState<"idle" | "added" | "buying">("idle");
 
   const allImages = [
     ...(product.thumbnail ? [product.thumbnail] : []),
@@ -35,8 +37,20 @@ export default function ProductDetailsClient({
   const savings = Math.max(originalPrice - product.price, 0);
   const isInStock = product.stock > 0;
 
-  const handleBuyNow = async () => {
+  const handleAddToCart = async () => {
+    setCartState("added");
     await addToCart(product);
+    toast.success(`${product.title} added to cart`);
+
+    window.setTimeout(() => {
+      setCartState("idle");
+    }, 900);
+  };
+
+  const handleBuyNow = async () => {
+    setCartState("buying");
+    await addToCart(product);
+    toast.success(`${product.title} added to cart`);
     router.push("/cart");
   };
 
@@ -169,19 +183,27 @@ export default function ProductDetailsClient({
             <div className="grid gap-3 sm:grid-cols-2">
               <button
                 type="button"
-                onClick={() => void addToCart(product)}
+                onClick={() => void handleAddToCart()}
                 disabled={!isInStock}
-                className="w-full rounded-2xl border border-gray-400 bg-white px-6 py-4 text-xl font-semibold tracking-wide text-gray-950 transition hover:border-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400"
+                className={`w-full rounded-2xl border px-6 py-4 text-xl font-semibold tracking-wide text-gray-950 transition disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400 ${
+                  cartState === "added"
+                    ? "border-green-400 bg-green-100 shadow-lg shadow-green-200"
+                    : "border-gray-400 bg-white hover:border-gray-700 hover:bg-gray-50"
+                }`}
               >
-                ADD TO CART
+                {cartState === "added" ? "ADDED TO CART" : "ADD TO CART"}
               </button>
               <button
                 type="button"
                 onClick={() => void handleBuyNow()}
                 disabled={!isInStock}
-                className="w-full rounded-2xl bg-amazonOrange px-6 py-4 text-xl font-semibold tracking-wide text-black transition hover:bg-amazonOrangeDark disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
+                className={`w-full rounded-2xl px-6 py-4 text-xl font-semibold tracking-wide text-black transition disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500 ${
+                  cartState === "buying"
+                    ? "bg-amber-300 shadow-lg shadow-amber-200"
+                    : "bg-amazonOrange hover:bg-amazonOrangeDark"
+                }`}
               >
-                BUY NOW
+                {cartState === "buying" ? "SENDING TO CART..." : "BUY NOW"}
               </button>
             </div>
             <button
