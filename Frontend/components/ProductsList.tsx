@@ -18,10 +18,19 @@ const ProductsList = ({
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeImageId, setActiveImageId] = useState<number | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   const addToCart = useStore((state) => state.addToCart);
   const addToFavorite = useStore((state) => state.addToFavorite);
+
+  const handleImageBounce = (productId: number) => {
+    setActiveImageId(productId);
+
+    window.setTimeout(() => {
+      setActiveImageId((current) => (current === productId ? null : current));
+    }, 450);
+  };
 
   useEffect(() => {
     setProducts(initialProducts);
@@ -131,14 +140,23 @@ const ProductsList = ({
               className="bg-white rounded-md shadow-sm border border-gray-200 p-4 flex flex-col"
             >
               {uiProduct.thumbnail && (
-                <div className="w-full h-48 mb-3 relative">
+                <button
+                  type="button"
+                  onClick={() => handleImageBounce(product.id)}
+                  className="w-full h-48 mb-3 relative cursor-pointer overflow-hidden rounded-md focus:outline-none"
+                  aria-label={`Preview ${uiProduct.title}`}
+                >
                   <Image
                     src={uiProduct.thumbnail}
                     alt={uiProduct.title}
                     fill
-                    className="object-contain"
+                    className={`object-contain transition-transform duration-300 ${
+                      activeImageId === product.id
+                        ? "animate-[bounce_0.45s_ease]"
+                        : "hover:scale-105"
+                    }`}
                   />
-                </div>
+                </button>
               )}
               <h3 className="text-sm font-semibold text-gray-900 line-clamp-2">
                 {uiProduct.title}
