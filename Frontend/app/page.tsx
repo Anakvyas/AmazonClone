@@ -1,17 +1,53 @@
-import CategorySection from "@/components/CategorySection"
-import Footer from "@/components/Footer"
+import {
+  bannerFive,
+  bannerFour,
+  bannerOne,
+  bannerThree,
+  bannerTwo,
+} from "@/assets";
+
+import ProductsList from "@/components/ProductsList";
+
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
+
+import Image from "next/image";
 
 export default function Home() {
 
+  const bannerImages = [
+    { title: "bannerOne", source: bannerOne },
+    { title: "bannerTwo", source: bannerTwo },
+    { title: "bannerThree", source: bannerThree },
+    { title: "bannerFour", source: bannerFour },
+    { title: "bannerFive", source: bannerFive },
+  ];
+
   return (
+    <div>
 
-    <main>
+      <Carousel>
+        <CarouselContent>
+          {bannerImages.map((item) => (
+            <CarouselItem key={item.title}>
+              <Image
+                src={item.source}
+                alt="banner"
+                className="w-full"
+                height={1080}
+              />
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+      </Carousel>
 
-      <CategorySection/>
+      <div className="p-10">
+        <ProductsList />
+      </div>
 
-      <Footer/>
-
-    </main>
-
+    </div>
   )
 }
