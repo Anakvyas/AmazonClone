@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/useStore";
 import { BackendProduct, getProducts, mapBackendProductToUi } from "@/service/api";
 
@@ -18,19 +19,11 @@ const ProductsList = ({
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeImageId, setActiveImageId] = useState<number | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const router = useRouter();
 
   const addToCart = useStore((state) => state.addToCart);
   const addToFavorite = useStore((state) => state.addToFavorite);
-
-  const handleImageBounce = (productId: number) => {
-    setActiveImageId(productId);
-
-    window.setTimeout(() => {
-      setActiveImageId((current) => (current === productId ? null : current));
-    }, 450);
-  };
 
   useEffect(() => {
     setProducts(initialProducts);
@@ -137,26 +130,18 @@ const ProductsList = ({
           return (
             <div
               key={product.id}
-              className="bg-white rounded-md shadow-sm border border-gray-200 p-4 flex flex-col"
+              onClick={() => router.push(`/product/${product.id}`)}
+              className="group relative cursor-pointer bg-white rounded-md shadow-sm border border-gray-200 p-4 flex flex-col transition-[box-shadow,transform] duration-200 hover:z-10 hover:-translate-y-1 hover:shadow-xl"
             >
               {uiProduct.thumbnail && (
-                <button
-                  type="button"
-                  onClick={() => handleImageBounce(product.id)}
-                  className="w-full h-48 mb-3 relative cursor-pointer overflow-hidden rounded-md focus:outline-none"
-                  aria-label={`Preview ${uiProduct.title}`}
-                >
+                <div className="w-full h-48 mb-3 relative overflow-hidden rounded-md">
                   <Image
                     src={uiProduct.thumbnail}
                     alt={uiProduct.title}
                     fill
-                    className={`object-contain transition-transform duration-300 ${
-                      activeImageId === product.id
-                        ? "animate-[bounce_0.45s_ease]"
-                        : "hover:scale-105"
-                    }`}
+                    className="object-contain transition-transform duration-300 group-hover:scale-105"
                   />
-                </button>
+                </div>
               )}
               <h3 className="text-sm font-semibold text-gray-900 line-clamp-2">
                 {uiProduct.title}
@@ -170,14 +155,20 @@ const ProductsList = ({
               <div className="mt-4 flex gap-2">
                 <button
                   type="button"
-                  onClick={() => void addToCart(uiProduct)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    void addToCart(uiProduct);
+                  }}
                   className="flex-1 py-1.5 px-3 rounded-full bg-amazonOrange hover:bg-amazonOrangeDark text-xs font-medium text-black"
                 >
                   Add to Cart
                 </button>
                 <button
                   type="button"
-                  onClick={() => void addToFavorite(uiProduct)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    void addToFavorite(uiProduct);
+                  }}
                   className="px-3 py-1.5 rounded-full border border-gray-300 text-xs font-medium text-gray-800 hover:bg-gray-50"
                 >
                   Wishlist

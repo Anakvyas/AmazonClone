@@ -175,6 +175,17 @@ export async function getProducts(
   });
 }
 
+export async function getProductById(
+  productId: number | string,
+  requestOptions: Pick<RequestOptions, "cache" | "next"> = {}
+): Promise<BackendProduct> {
+  return request<BackendProduct>(`/api/products/${productId}`, {
+    method: "GET",
+    cache: requestOptions.cache ?? "no-store",
+    next: requestOptions.next,
+  });
+}
+
 // Optional helper if you want to map backend products
 // into the richer UI Product type.
 export function mapBackendProductToUi(p: BackendProduct): Product {
