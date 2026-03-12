@@ -6,6 +6,7 @@ import Image from "next/image";
 import { FormEvent, useState } from "react";
 import { useStore } from "@/lib/useStore";
 import toast from "react-hot-toast";
+import GoogleAuthButton from "@/components/GoogleAuthButton";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -101,6 +102,7 @@ export default function LoginPage() {
           >
             Sign in
           </button>
+          <GoogleAuthButton mode="login" />
           <p className="text-xs text-gray-600">
             By continuing, you agree to the Amazon clone&apos;s Conditions of
             Use and Privacy Notice.

@@ -149,6 +149,23 @@ export async function loginUser(input: {
   };
 }
 
+export async function loginWithGoogle(credential: string): Promise<AuthUser> {
+  const res = await request<{
+    token: string;
+    user: { id: number; username: string; email: string };
+  }>("/api/auth/google", {
+    method: "POST",
+    body: { credential },
+  });
+
+  return {
+    id: res.user.id,
+    name: res.user.username,
+    email: res.user.email,
+    token: res.token,
+  };
+}
+
 // ========== Products ==========
 
 export interface BackendProduct {

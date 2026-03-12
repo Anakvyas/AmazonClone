@@ -6,6 +6,7 @@ import Image from "next/image";
 import { FormEvent, useState } from "react";
 import { useStore } from "@/lib/useStore";
 import toast from "react-hot-toast";
+import GoogleAuthButton from "@/components/GoogleAuthButton";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -143,6 +144,7 @@ export default function SignupPage() {
           >
             Create your Amazon account
           </button>
+          <GoogleAuthButton mode="signup" />
           <p className="text-xs text-gray-600">
             By creating an account, you agree to the Amazon clone&apos;s
             Conditions of Use and Privacy Notice.

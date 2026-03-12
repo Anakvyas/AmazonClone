@@ -15,6 +15,7 @@ interface StoreType {
   token: string | null;
   isLoggedIn: boolean;
   login: (credentials: { email: string; password: string }) => Promise<void>;
+  googleLogin: (credential: string) => Promise<void>;
   signup: (input: {
     name: string;
     email: string;
@@ -42,6 +43,19 @@ export const store = create<StoreType>()(
       isLoggedIn: false,
       login: async ({ email, password }) => {
         const auth = await api.loginUser({ email, password });
+
+        set({
+          user: {
+            id: auth.id,
+            name: auth.name,
+            email: auth.email,
+          },
+          token: auth.token,
+          isLoggedIn: true,
+        });
+      },
+      googleLogin: async (credential: string) => {
+        const auth = await api.loginWithGoogle(credential);
 
         set({
           user: {
