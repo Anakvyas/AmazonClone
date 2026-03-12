@@ -15,14 +15,16 @@ const CartButton = () => {
   return (
     <Link
       href={"/cart"}
-      className="relative flex h-[70%] items-center border border-transparent px-2 duration-300 hover:border-white"
+      className="relative flex h-[70%] items-end gap-1 border border-transparent px-2 py-1 text-white duration-300 hover:border-white"
     >
       <Image
         src={cartIcon}
         alt="cartIcon"
         className="w-auto object-cover h-8"
       />
-      <p className="text-xs text-white font-bold mt-3">Cart</p>
+      <p className="text-[11px] font-bold leading-none md:mt-3 md:text-xs">
+        Cart
+      </p>
       <span className="absolute left-6 top-0 flex min-w-5 items-center justify-center rounded-md border border-gray-400 bg-[#131921] px-1 text-xs font-semibold text-amazonOrangeDark">
         {cartCount}
       </span>
