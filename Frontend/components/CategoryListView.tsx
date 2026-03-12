@@ -7,10 +7,21 @@ import {
   CommandEmpty,
   CommandGroup,
   CommandInput,
+  CommandItem,
   CommandList,
 } from "./ui/command";
 
-const CategoryListView = () => {
+interface CategoryListViewProps {
+  categories: string[];
+  selectedCategory: string;
+  onSelectCategory: (category: string) => void;
+}
+
+const CategoryListView = ({
+  categories,
+  selectedCategory,
+  onSelectCategory,
+}: CategoryListViewProps) => {
   const [open, setOpen] = useState(false);
 
   return (
@@ -22,7 +33,7 @@ const CategoryListView = () => {
           aria-expanded={open}
           className={`w-auto justify-between rounded-none rounded-tl-md rounded-bl-md text-black/80 capitalize border-r-2 hover:border-amazonOrangeDark hoverEffect`}
         >
-          All
+          {selectedCategory}
           <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -30,8 +41,32 @@ const CategoryListView = () => {
         <Command className="bg-amazonBlue backdrop-blur-md text-white">
           <CommandInput placeholder="Search Category" className="h-9" />
           <CommandList>
-            <CommandEmpty>No framework found.</CommandEmpty>
-            <CommandGroup className="text-white">category</CommandGroup>
+            <CommandEmpty>No category found.</CommandEmpty>
+            <CommandGroup className="text-white" heading="Categories">
+              <CommandItem
+                value="All"
+                onSelect={() => {
+                  onSelectCategory("All");
+                  setOpen(false);
+                }}
+                className="cursor-pointer text-white data-[selected=true]:bg-white/10 data-[selected=true]:text-white"
+              >
+                All
+              </CommandItem>
+              {categories.map((category) => (
+                <CommandItem
+                  key={category}
+                  value={category}
+                  onSelect={() => {
+                    onSelectCategory(category);
+                    setOpen(false);
+                  }}
+                  className="cursor-pointer capitalize text-white data-[selected=true]:bg-white/10 data-[selected=true]:text-white"
+                >
+                  {category}
+                </CommandItem>
+              ))}
+            </CommandGroup>
           </CommandList>
         </Command>
       </PopoverContent>

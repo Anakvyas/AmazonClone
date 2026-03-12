@@ -1,6 +1,7 @@
 import { logo } from "@/assets";
 import Image from "next/image";
 import Link from "next/link";
+import { Suspense } from "react";
 import { SlLocationPin } from "react-icons/sl";
 import CartButton from "./CartButton";
 import FavoriteButton from "./FavoriteButton";
@@ -34,7 +35,9 @@ const Header = () => {
               <p className="text-white font-bold uppercase">USA</p>
             </div>
           </div>
-          <SearchInput />
+          <Suspense fallback={<div className="flex-1 h-10 mx-4 rounded-md bg-white/10" />}>
+            <SearchInput />
+          </Suspense>
 
           <SignOutButton />
           <SignInButton />

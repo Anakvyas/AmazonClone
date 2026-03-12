@@ -8,11 +8,15 @@ import { BackendProduct, getProducts, mapBackendProductToUi } from "@/service/ap
 interface ProductsListProps {
   initialProducts: BackendProduct[];
   initialHasMore: boolean;
+  searchQuery: string;
+  category: string;
 }
 
 const ProductsList = ({
   initialProducts,
   initialHasMore,
+  searchQuery,
+  category,
 }: ProductsListProps) => {
   const [products, setProducts] = useState<BackendProduct[]>(initialProducts);
   const [page, setPage] = useState(1);
@@ -70,7 +74,12 @@ const ProductsList = ({
     const loadNextPage = async () => {
       try {
         const nextPage = page + 1;
-        const response = await getProducts({ page: nextPage, limit: 10 });
+        const response = await getProducts({
+          page: nextPage,
+          limit: 10,
+          search: searchQuery || undefined,
+          category: category !== "All" ? category : undefined,
+        });
 
         if (isCancelled) {
           return;
@@ -103,7 +112,7 @@ const ProductsList = ({
     return () => {
       isCancelled = true;
     };
-  }, [loadingMore, page]);
+  }, [category, loadingMore, page, searchQuery]);
 
   if (error) {
     return (
