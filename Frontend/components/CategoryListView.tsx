@@ -1,30 +1,41 @@
-"use client";
+import React, { useState } from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { Button } from "./ui/button";
+import { ChevronDown } from "lucide-react";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandList,
+} from "./ui/command";
 
-interface Props {
-  categories: string[];
-  selectedCategory: string;
-  onSelect: (category: string) => void;
-}
+const CategoryListView = () => {
+  const [open, setOpen] = useState(false);
 
-const CategoryListView = ({
-  categories,
-  selectedCategory,
-  onSelect,
-}: Props) => {
   return (
-    <select
-      aria-label="Select category"
-      value={selectedCategory}
-      onChange={(event) => onSelect(event.target.value)}
-      className="h-full rounded-l-md border-r-2 border-transparent bg-[#f3f3f3] px-3 text-sm text-black/80 outline-none hover:border-amazonOrangeDark"
-    >
-      <option value="all">All</option>
-      {categories.map((category) => (
-        <option key={category} value={category}>
-          {category}
-        </option>
-      ))}
-    </select>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className={`w-auto justify-between rounded-none rounded-tl-md rounded-bl-md text-black/80 capitalize border-r-2 hover:border-amazonOrangeDark hoverEffect`}
+        >
+          All
+          <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0">
+        <Command className="bg-amazonBlue backdrop-blur-md text-white">
+          <CommandInput placeholder="Search Category" className="h-9" />
+          <CommandList>
+            <CommandEmpty>No framework found.</CommandEmpty>
+            <CommandGroup className="text-white">category</CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 };
 

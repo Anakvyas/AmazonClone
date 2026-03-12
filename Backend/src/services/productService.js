@@ -1,14 +1,20 @@
 const prisma = require("../config/prisma")
-const redis = require("../config/redis")
+const { client: redis, isRedisReady } = require("../config/redis")
 
 exports.getProducts = async ({ search, category, page = 1, limit = 10 }) => {
 
   const cacheKey = `products:${search}:${category}:${page}`
 
-  const cached = await redis.get(cacheKey)
+  if (isRedisReady()) {
+    try {
+      const cached = await redis.get(cacheKey)
 
-  if (cached) {
-    return JSON.parse(cached)
+      if (cached) {
+        return JSON.parse(cached)
+      }
+    } catch (err) {
+      console.warn("Redis read failed, skipping cache:", err.message)
+    }
   }
 
   const products = await prisma.product.findMany({
@@ -35,7 +41,13 @@ exports.getProducts = async ({ search, category, page = 1, limit = 10 }) => {
     take: limit
   })
 
-  await redis.setEx(cacheKey, 60, JSON.stringify(products))
+  if (isRedisReady()) {
+    try {
+      await redis.setEx(cacheKey, 60, JSON.stringify(products))
+    } catch (err) {
+      console.warn("Redis write failed, skipping cache:", err.message)
+    }
+  }
 
   return products
 }

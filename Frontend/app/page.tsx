@@ -10,7 +10,7 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-} from "@/ui/carousel";
+} from "@/components/ui/carousel";
 import Image from "next/image";
 
 export default function Home() {
@@ -30,8 +30,7 @@ export default function Home() {
               <Image
                 src={item?.source}
                 alt="bannerOne"
-                className="h-auto w-full"
-                width={1600}
+                className="w-full"
                 height={1080}
               />
             </CarouselItem>

@@ -1,7 +1,19 @@
-const nextConfig = {
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  /* config options here */
   images: {
-    domains: ["cdn.dummyjson.com"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "cdn.dummyjson.com",
+      },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+      },
+    ],
   },
 };
 
-module.exports = nextConfig;
+export default nextConfig;

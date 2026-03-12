@@ -1,75 +1,153 @@
-import { Product } from "@/types/product";
+import { Product } from "@/type";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+interface AuthUser {
+  name: string;
+  email: string;
+}
+
 interface StoreType {
+  // auth (client-only)
+  user: AuthUser | null;
+  isLoggedIn: boolean;
+  login: (user: AuthUser) => void;
+  signup: (user: AuthUser) => void;
+  logout: () => void;
+  // cart
   cartProduct: Product[];
-  favoriteProduct: Product[];
-  addToCart: (product: Product) => void;
+  addToCart: (product: Product) => Promise<void>;
   decreaseQuantity: (productId: number) => void;
   removeFromCart: (productId: number) => void;
   resetCart: () => void;
-  addToFavorite: (product: Product) => void;
+  // favorite
+  favoriteProduct: Product[];
+  addToFavorite: (product: Product) => Promise<void>;
   removeFromFavorite: (productId: number) => void;
   resetFavorite: () => void;
 }
 
-export const useStore = create<StoreType>()(
+// Custom storage object
+const customStorage = {
+  getItem: (name: string) => {
+    const item = localStorage.getItem(name);
+    return item ? JSON.parse(item) : null;
+  },
+  setItem: (name: string, value: unknown): void => {
+    localStorage.setItem(name, JSON.stringify(value));
+  },
+  removeItem: (name: string) => {
+    localStorage.removeItem(name);
+  },
+};
+
+export const store = create<StoreType>()(
   persist(
     (set) => ({
+      user: null,
+      isLoggedIn: false,
+      login: (user: AuthUser) =>
+        set({
+          user,
+          isLoggedIn: true,
+        }),
+      signup: (user: AuthUser) =>
+        set({
+          user,
+          isLoggedIn: true,
+        }),
+      logout: () =>
+        set({
+          user: null,
+          isLoggedIn: false,
+        }),
       cartProduct: [],
       favoriteProduct: [],
-      addToCart: (product) =>
-        set((state) => {
-          const existing = state.cartProduct.find((item) => item.id === product.id);
+      addToCart: (product: Product) => {
+        return new Promise<void>((resolve) => {
+          set((state: StoreType) => {
+            const existingProduct = state.cartProduct.find(
+              (p) => p.id === product.id
+            );
 
-          if (existing) {
+            if (existingProduct) {
+              return {
+                cartProduct: state.cartProduct.map((p) =>
+                  p.id === product.id
+                    ? { ...p, quantity: (p.quantity || 0) + 1 }
+                    : p
+                ),
+              };
+            } else {
+              return {
+                cartProduct: [
+                  ...state.cartProduct,
+                  { ...product, quantity: 1 },
+                ],
+              };
+            }
+          });
+          resolve();
+        });
+      },
+      decreaseQuantity: (productId: number) => {
+        set((state: StoreType) => {
+          const existingProduct = state.cartProduct.find(
+            (p) => p.id === productId
+          );
+
+          if (existingProduct) {
             return {
-              cartProduct: state.cartProduct.map((item) =>
-                item.id === product.id
-                  ? { ...item, quantity: (item.quantity ?? 1) + 1 }
-                  : item
+              cartProduct: state.cartProduct.map((p) =>
+                p.id === productId
+                  ? { ...p, quantity: Math.max((p?.quantity ?? 1) - 1, 1) }
+                  : p
               ),
             };
+          } else {
+            return state;
           }
-
-          return {
-            cartProduct: [...state.cartProduct, { ...product, quantity: 1 }],
-          };
-        }),
-      decreaseQuantity: (productId) =>
-        set((state) => ({
-          cartProduct: state.cartProduct.map((item) =>
-            item.id === productId
-              ? { ...item, quantity: Math.max((item.quantity ?? 1) - 1, 1) }
-              : item
+        });
+      },
+      removeFromCart: (productId: number) => {
+        set((state: StoreType) => ({
+          cartProduct: state.cartProduct.filter(
+            (item) => item.id !== productId
           ),
-        })),
-      removeFromCart: (productId) =>
-        set((state) => ({
-          cartProduct: state.cartProduct.filter((item) => item.id !== productId),
-        })),
-      resetCart: () => set({ cartProduct: [] }),
-      addToFavorite: (product) =>
-        set((state) => {
-          const exists = state.favoriteProduct.some((item) => item.id === product.id);
-
-          return {
-            favoriteProduct: exists
-              ? state.favoriteProduct.filter((item) => item.id !== product.id)
-              : [...state.favoriteProduct, product],
-          };
-        }),
-      removeFromFavorite: (productId) =>
-        set((state) => ({
+        }));
+      },
+      resetCart: () => {
+        set({ cartProduct: [] });
+      },
+      addToFavorite: (product: Product) => {
+        return new Promise<void>((resolve) => {
+          set((state: StoreType) => {
+            const isFavorite = state.favoriteProduct.some(
+              (item) => item.id === product.id
+            );
+            return {
+              favoriteProduct: isFavorite
+                ? state.favoriteProduct.filter((item) => item.id !== product.id)
+                : [...state.favoriteProduct, { ...product }],
+            };
+          });
+          resolve();
+        });
+      },
+      removeFromFavorite: (productId: number) => {
+        set((state: StoreType) => ({
           favoriteProduct: state.favoriteProduct.filter(
             (item) => item.id !== productId
           ),
-        })),
-      resetFavorite: () => set({ favoriteProduct: [] }),
+        }));
+      },
+      resetFavorite: () => {
+        set({ favoriteProduct: [] });
+      },
     }),
     {
-      name: "amazon-store",
+      name: "store-storage",
+      storage: customStorage,
     }
   )
 );

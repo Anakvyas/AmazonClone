@@ -1,84 +1,56 @@
 "use client";
-
-import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { HiOutlineSearch } from "react-icons/hi";
 import { MdOutlineClose } from "react-icons/md";
+import Link from "next/link";
 import { CiSearch } from "react-icons/ci";
+import { CategoryItems, Product } from "@/type";
 import CategoryListView from "./CategoryListView";
-import { Product } from "@/types/product";
-import { getProducts } from "@/services/api";
 
 const SearchInput = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [products, setProducts] = useState<Product[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [isInputFocused, setIsInputFocused] = useState(false);
-  const searchContainerRef = useRef<HTMLDivElement>(null);
+  const [products, setProducts] = useState([]);
+  const [isInputFocused, setIsInputFocused] = useState(false); // New state to manage input focus
+  const searchContainerRef = useRef<HTMLDivElement>(null); // Ref to detect clicks outside
+
+  const [filteredProducts, setFilteredProducts] = useState([]);
 
   useEffect(() => {
-    const loadProducts = async () => {
-      try {
-        const data = await getProducts();
-        setProducts(data);
-      } catch (error) {
-        console.error("Failed to fetch search products", error);
-      }
-    };
-
-    loadProducts();
-  }, []);
-
+    const filtered = products.filter((item: Product) =>
+      item?.title.toLocaleLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredProducts(filtered);
+  }, [searchQuery, products]);
+  // Effect to detect click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         searchContainerRef.current &&
         !searchContainerRef.current.contains(event.target as Node)
       ) {
-        setIsInputFocused(false);
+        setIsInputFocused(false); // Hide the list if clicking outside
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
-
-  const categories = useMemo(
-    () => [...new Set(products.map((product) => product.category).filter(Boolean))],
-    [products]
-  );
-
-  const filteredProducts = useMemo(
-    () =>
-      products.filter((product) => {
-        const matchesQuery = product.title
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase());
-        const matchesCategory =
-          selectedCategory === "all" || product.category === selectedCategory;
-
-        return matchesQuery && matchesCategory;
-      }),
-    [products, searchQuery, selectedCategory]
-  );
 
   return (
     <div
       ref={searchContainerRef}
-      className="flex-1 h-10 mx-4 hidden md:inline-flex items-center justify-between relative"
+      className="flex-1 h-10 mx-4 flex items-center justify-between relative"
     >
-      <CategoryListView
-        categories={categories}
-        selectedCategory={selectedCategory}
-        onSelect={setSelectedCategory}
-      />
+      <CategoryListView />
       <input
         className="w-full h-full rounded-tr-md rounded-br-md px-2 placeholder:text-sm text-base text-black placeholder:text-black/70 border-[3px] border-transparent outline-none focus-visible:border-amazonOrange"
         type="text"
         onChange={(e) => setSearchQuery(e.target.value)}
         value={searchQuery}
         placeholder="Search amazon"
-        onFocus={() => setIsInputFocused(true)}
+        onFocus={() => setIsInputFocused(true)} // Set focus state
       />
       {searchQuery && (
         <MdOutlineClose
@@ -89,22 +61,22 @@ const SearchInput = () => {
       <span className="w-12 h-full bg-amazonOrange hover:bg-amazonOrangeDark duration-200 cursor-pointer text-black text-2xl flex items-center justify-center absolute right-0 rounded-tr-md rounded-br-md">
         <HiOutlineSearch />
       </span>
+      {/*  ============= Searchfield start here ========== */}
       {isInputFocused && searchQuery && (
-        <div className="absolute left-0 top-12 w-full mx-auto h-auto max-h-96 bg-white rounded-md overflow-y-scroll cursor-pointer text-black shadow-lg">
-          {filteredProducts.length > 0 ? (
+        <div className="absolute left-0 top-12 w-full mx-auto h-auto max-h-96 bg-white rounded-md overflow-y-scroll cursor-pointer text-black">
+          {filteredProducts?.length > 0 ? (
             <div className="flex flex-col">
-              {filteredProducts.map((item) => (
+              {filteredProducts?.map((item: Product) => (
                 <Link
-                  key={item.id}
-                  href={`/product/${item.id}`}
-                  onClick={() => {
-                    setSearchQuery("");
-                    setIsInputFocused(false);
+                  key={item?.id}
+                  href={{
+                    pathname: `/product/${item?.id}`,
+                    query: { id: item?.id },
                   }}
+                  onClick={() => setSearchQuery("")}
                   className="flex items-center gap-x-2 text-base font-medium hover:bg-lightText/30 px-3 py-1.5"
                 >
-                  <CiSearch className="text-lg" />
-                  {item.title}
+                  <CiSearch className="text-lg" /> {item?.title}
                 </Link>
               ))}
             </div>
@@ -121,6 +93,8 @@ const SearchInput = () => {
           )}
         </div>
       )}
+
+      {/*  ============= Searchfield end here ============ */}
     </div>
   );
 };

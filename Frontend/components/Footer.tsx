@@ -1,5 +1,5 @@
 import React from "react";
-import { footerData } from "@/public/footerdata";
+import { footerData } from "@/constants/data";
 import FooterMiddleList from "./FooterMiddleList";
 import Container from "./Container";
 
