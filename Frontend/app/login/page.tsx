@@ -8,12 +8,12 @@ import { useStore } from "@/lib/useStore";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useStore((state) => ({ login: state.login }));
+  const login = useStore((state) => state.login);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -22,11 +22,17 @@ export default function LoginPage() {
       return;
     }
 
-    login({
-      name: email.split("@")[0] || "Guest",
-      email,
-    });
-    router.push("/");
+    try {
+      await login({
+        email,
+        password,
+      });
+      router.push("/");
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Unable to sign in. Please try again.";
+      setError(message);
+    }
   };
 
   return (
@@ -109,4 +115,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

@@ -3,21 +3,59 @@
 import { useStore } from "@/lib/useStore";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function CartPage() {
-  const { cartProduct, decreaseQuantity, addToCart, removeFromCart, resetCart } =
-    useStore((state) => ({
-      cartProduct: state.cartProduct,
-      decreaseQuantity: state.decreaseQuantity,
-      addToCart: state.addToCart,
-      removeFromCart: state.removeFromCart,
-      resetCart: state.resetCart,
-    }));
+  const router = useRouter();
+  const cartProduct = useStore((state) => state.cartProduct);
+  const decreaseQuantity = useStore((state) => state.decreaseQuantity);
+  const addToCart = useStore((state) => state.addToCart);
+  const removeFromCart = useStore((state) => state.removeFromCart);
+  const resetCart = useStore((state) => state.resetCart);
+  const isLoggedIn = useStore((state) => state.isLoggedIn);
+  const token = useStore((state) => state.token);
+
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const total = cartProduct.reduce(
     (sum, item) => sum + (item.price || 0) * (item.quantity || 1),
     0
   );
+
+  const handleCheckout = async () => {
+    setError(null);
+
+    if (!isLoggedIn || !token) {
+      router.push("/login");
+      return;
+    }
+
+    if (!cartProduct.length || submitting) return;
+
+    setSubmitting(true);
+    try {
+      const items = cartProduct.map((item) => ({
+        productId: item.id,
+        quantity: item.quantity || 1,
+        price: item.price || 0,
+      }));
+
+      const { createOrder } = await import("@/service/api");
+      await createOrder({ items, token });
+      resetCart();
+      router.push("/orders");
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Unable to place order. Please try again.";
+      setError(message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   if (cartProduct.length === 0) {
     return (
@@ -50,10 +88,10 @@ export default function CartPage() {
                 key={item.id}
                 className="flex flex-col md:flex-row gap-4 border-b border-gray-200 pb-4"
               >
-                {item.image && (
+                {(item.thumbnail || item.images?.[0]) && (
                   <div className="w-32 flex items-center justify-center">
                     <Image
-                      src={item.image}
+                      src={item.thumbnail || item.images[0]}
                       alt={item.title || "Product image"}
                       width={200}
                       height={200}
@@ -127,15 +165,21 @@ export default function CartPage() {
               ${total.toFixed(2)}
             </span>
           </p>
+          {error && (
+            <p className="text-xs text-red-600 mb-2" aria-live="polite">
+              {error}
+            </p>
+          )}
           <button
             type="button"
-            className="w-full mt-2 py-2 px-4 text-sm font-medium rounded-full bg-amazonOrange hover:bg-amazonOrangeDark text-black"
+            onClick={handleCheckout}
+            disabled={submitting}
+            className="w-full mt-2 py-2 px-4 text-sm font-medium rounded-full bg-amazonOrange hover:bg-amazonOrangeDark disabled:opacity-60 disabled:cursor-not-allowed text-black"
           >
-            Proceed to checkout
+            {submitting ? "Placing order..." : "Proceed to checkout"}
           </button>
         </div>
       </div>
     </div>
   );
 }
-

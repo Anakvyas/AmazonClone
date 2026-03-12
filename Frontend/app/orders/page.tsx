@@ -1,29 +1,50 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useStore } from "@/lib/useStore";
-
-const dummyOrders = [
-  {
-    id: "ORDER-123456",
-    date: "March 10, 2026",
-    total: 89.99,
-    items: 2,
-    status: "Delivered",
-  },
-  {
-    id: "ORDER-987654",
-    date: "February 25, 2026",
-    total: 39.49,
-    items: 1,
-    status: "Shipped",
-  },
-];
+import type { OrderDto } from "@/service/api";
+import { getOrders } from "@/service/api";
 
 export default function OrdersPage() {
-  const { isLoggedIn } = useStore((state) => ({
-    isLoggedIn: state.isLoggedIn,
-  }));
+  const isLoggedIn = useStore((state) => state.isLoggedIn);
+  const token = useStore((state) => state.token);
+
+  const [orders, setOrders] = useState<OrderDto[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isLoggedIn || !token) return;
+
+    let isMounted = true;
+    setLoading(true);
+    setError(null);
+
+    const load = async () => {
+      try {
+        const data = await getOrders(token);
+        if (!isMounted) return;
+        setOrders(data);
+      } catch (err) {
+        if (!isMounted) return;
+        const message =
+          err instanceof Error
+            ? err.message
+            : "Unable to load your orders. Please try again.";
+        setError(message);
+      } finally {
+        if (!isMounted) return;
+        setLoading(false);
+      }
+    };
+
+    void load();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isLoggedIn, token]);
 
   if (!isLoggedIn) {
     return (
@@ -51,8 +72,16 @@ export default function OrdersPage() {
     <div className="bg-gray-100 min-h-[60vh] px-4 py-10">
       <div className="max-w-5xl mx-auto space-y-4">
         <h1 className="text-2xl font-semibold">Your Orders</h1>
+        {loading && (
+          <p className="text-sm text-gray-600">Loading your orders...</p>
+        )}
+        {error && (
+          <p className="text-sm text-red-600" aria-live="polite">
+            {error}
+          </p>
+        )}
         <div className="space-y-4">
-          {dummyOrders.map((order) => (
+          {orders.map((order) => (
             <div
               key={order.id}
               className="bg-white border border-gray-200 rounded-md p-4 shadow-sm"
@@ -61,20 +90,21 @@ export default function OrdersPage() {
                 <div className="text-sm text-gray-700 space-y-1">
                   <p>
                     <span className="font-semibold">Order placed:</span>{" "}
-                    {order.date}
+                    {new Date(order.createdAt).toLocaleDateString()}
                   </p>
                   <p>
                     <span className="font-semibold">Total:</span> $
-                    {order.total.toFixed(2)}
+                    {order.totalPrice.toFixed(2)}
                   </p>
                   <p>
                     <span className="font-semibold">Order #:</span> {order.id}
                   </p>
                 </div>
                 <div className="text-sm text-gray-700 text-right">
-                  <p className="font-semibold">{order.status}</p>
+                  <p className="font-semibold">Completed</p>
                   <p className="text-xs text-gray-500">
-                    {order.items} item{order.items > 1 ? "s" : ""}
+                    {order.items.length} item
+                    {order.items.length > 1 ? "s" : ""}
                   </p>
                   <button
                     type="button"
@@ -91,4 +121,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-

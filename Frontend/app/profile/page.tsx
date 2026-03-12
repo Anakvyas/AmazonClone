@@ -7,10 +7,8 @@ import { useStore } from "@/lib/useStore";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, isLoggedIn } = useStore((state) => ({
-    user: state.user,
-    isLoggedIn: state.isLoggedIn,
-  }));
+  const user = useStore((state) => state.user);
+  const isLoggedIn = useStore((state) => state.isLoggedIn);
 
   if (!isLoggedIn || !user) {
     return (
@@ -86,4 +84,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-

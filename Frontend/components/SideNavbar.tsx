@@ -5,7 +5,6 @@ import { MdKeyboardArrowDown, MdKeyboardArrowRight } from "react-icons/md";
 import { motion, AnimatePresence } from "motion/react";
 import { LogOut, X } from "lucide-react";
 import { sidebarItems } from "@/constants/data";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/useStore";
 

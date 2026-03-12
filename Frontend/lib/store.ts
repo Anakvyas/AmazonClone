@@ -1,8 +1,10 @@
 import { Product } from "@/type";
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
+import * as api from "@/service/api";
 
 interface AuthUser {
+  id: number;
   name: string;
   email: string;
 }
@@ -10,9 +12,14 @@ interface AuthUser {
 interface StoreType {
   // auth (client-only)
   user: AuthUser | null;
+  token: string | null;
   isLoggedIn: boolean;
-  login: (user: AuthUser) => void;
-  signup: (user: AuthUser) => void;
+  login: (credentials: { email: string; password: string }) => Promise<void>;
+  signup: (input: {
+    name: string;
+    email: string;
+    password: string;
+  }) => Promise<void>;
   logout: () => void;
   // cart
   cartProduct: Product[];
@@ -27,44 +34,62 @@ interface StoreType {
   resetFavorite: () => void;
 }
 
-// Custom storage object
-const customStorage = {
-  getItem: (name: string) => {
-    const item = localStorage.getItem(name);
-    return item ? JSON.parse(item) : null;
-  },
-  setItem: (name: string, value: unknown): void => {
-    localStorage.setItem(name, JSON.stringify(value));
-  },
-  removeItem: (name: string) => {
-    localStorage.removeItem(name);
-  },
-};
-
 export const store = create<StoreType>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
+      token: null,
       isLoggedIn: false,
-      login: (user: AuthUser) =>
+      login: async ({ email, password }) => {
+        const auth = await api.loginUser({ email, password });
+
         set({
-          user,
+          user: {
+            id: auth.id,
+            name: auth.name,
+            email: auth.email,
+          },
+          token: auth.token,
           isLoggedIn: true,
-        }),
-      signup: (user: AuthUser) =>
+        });
+      },
+      signup: async ({ name, email, password }) => {
+        const auth = await api.registerUser({ name, email, password });
+
         set({
-          user,
+          user: {
+            id: auth.id,
+            name: auth.name,
+            email: auth.email,
+          },
+          token: auth.token,
           isLoggedIn: true,
-        }),
+        });
+      },
       logout: () =>
         set({
           user: null,
+          token: null,
           isLoggedIn: false,
         }),
       cartProduct: [],
       favoriteProduct: [],
       addToCart: (product: Product) => {
         return new Promise<void>((resolve) => {
+          const state = get();
+
+          if (state.token) {
+            void api
+              .addToCart({
+                productId: product.id,
+                quantity: 1,
+                token: state.token,
+              })
+              .catch(() => {
+                // Ignore backend failures for local UX; UI stays responsive.
+              });
+          }
+
           set((state: StoreType) => {
             const existingProduct = state.cartProduct.find(
               (p) => p.id === product.id
@@ -121,6 +146,19 @@ export const store = create<StoreType>()(
       },
       addToFavorite: (product: Product) => {
         return new Promise<void>((resolve) => {
+          const state = get();
+
+          if (state.token) {
+            void api
+              .addToWishlist({
+                productId: product.id,
+                token: state.token,
+              })
+              .catch(() => {
+                // Ignore backend failures; local toggle still works.
+              });
+          }
+
           set((state: StoreType) => {
             const isFavorite = state.favoriteProduct.some(
               (item) => item.id === product.id
@@ -147,7 +185,7 @@ export const store = create<StoreType>()(
     }),
     {
       name: "store-storage",
-      storage: customStorage,
+      storage: createJSONStorage(() => localStorage),
     }
   )
 );

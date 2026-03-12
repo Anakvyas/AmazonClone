@@ -8,14 +8,14 @@ import { useStore } from "@/lib/useStore";
 
 export default function SignupPage() {
   const router = useRouter();
-  const { signup } = useStore((state) => ({ signup: state.signup }));
+  const signup = useStore((state) => state.signup);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -29,11 +29,20 @@ export default function SignupPage() {
       return;
     }
 
-    signup({
-      name,
-      email,
-    });
-    router.push("/");
+    try {
+      await signup({
+        name,
+        email,
+        password,
+      });
+      router.push("/");
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Unable to create account. Please try again.";
+      setError(message);
+    }
   };
 
   return (
@@ -145,4 +154,3 @@ export default function SignupPage() {
     </div>
   );
 }
-

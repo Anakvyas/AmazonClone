@@ -1,3 +1,4 @@
+const prisma = require("../config/prisma")
 const orderService = require("../services/orderService")
 
 exports.createOrder = async(req,res,next)=>{
@@ -7,7 +8,7 @@ exports.createOrder = async(req,res,next)=>{
   const order = await orderService.createOrder(
     req.userId,
     req.body.items,
-    req.user.email
+    null
   )
 
   res.json({

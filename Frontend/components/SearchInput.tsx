@@ -4,16 +4,38 @@ import { HiOutlineSearch } from "react-icons/hi";
 import { MdOutlineClose } from "react-icons/md";
 import Link from "next/link";
 import { CiSearch } from "react-icons/ci";
-import { CategoryItems, Product } from "@/type";
+import { Product } from "@/type";
 import CategoryListView from "./CategoryListView";
+import { BackendProduct, getProducts, mapBackendProductToUi } from "@/service/api";
 
 const SearchInput = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [isInputFocused, setIsInputFocused] = useState(false); // New state to manage input focus
   const searchContainerRef = useRef<HTMLDivElement>(null); // Ref to detect clicks outside
 
-  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const load = async () => {
+      try {
+        const backendProducts: BackendProduct[] = await getProducts();
+        if (!isMounted) return;
+        const mapped = backendProducts.map(mapBackendProductToUi);
+        setProducts(mapped);
+      } catch {
+        // Swallow errors – search is a convenience feature.
+      }
+    };
+
+    void load();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     const filtered = products.filter((item: Product) =>
