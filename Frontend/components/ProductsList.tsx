@@ -25,12 +25,14 @@ const ProductsList = ({
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeCartId, setActiveCartId] = useState<number | null>(null);
+  const [activeWishlistId, setActiveWishlistId] = useState<number | null>(null);
   const [isMobileView, setIsMobileView] = useState(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
 
   const addToCart = useStore((state) => state.addToCart);
   const addToFavorite = useStore((state) => state.addToFavorite);
+  const favoriteProduct = useStore((state) => state.favoriteProduct);
 
   const handleAddToCart = async (
     productId: number,
@@ -42,6 +44,25 @@ const ProductsList = ({
 
     window.setTimeout(() => {
       setActiveCartId((current) => (current === productId ? null : current));
+    }, 900);
+  };
+
+  const handleWishlist = async (
+    productId: number,
+    product: ReturnType<typeof mapBackendProductToUi>
+  ) => {
+    const wasFavorite = favoriteProduct.some((item) => item.id === productId);
+
+    setActiveWishlistId(productId);
+    await addToFavorite(product);
+    toast.success(
+      wasFavorite
+        ? `${product.title} removed from wishlist`
+        : `${product.title} added to wishlist`
+    );
+
+    window.setTimeout(() => {
+      setActiveWishlistId((current) => (current === productId ? null : current));
     }, 900);
   };
 
@@ -174,6 +195,7 @@ const ProductsList = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {products.map((product) => {
           const uiProduct = mapBackendProductToUi(product);
+          const isFavorite = favoriteProduct.some((item) => item.id === product.id);
 
           return (
             <div
@@ -219,11 +241,17 @@ const ProductsList = ({
                   type="button"
                   onClick={(event) => {
                     event.stopPropagation();
-                    void addToFavorite(uiProduct);
+                    void handleWishlist(product.id, uiProduct);
                   }}
-                  className="px-3 py-1.5 rounded-full border border-gray-300 text-xs font-medium text-gray-800 hover:bg-gray-50"
+                  className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
+                    activeWishlistId === product.id || isFavorite
+                      ? "border border-rose-200 bg-rose-100 text-rose-700 shadow-md shadow-rose-100"
+                      : "border border-gray-300 text-gray-800 hover:bg-gray-50"
+                  }`}
                 >
-                  Wishlist
+                  {activeWishlistId === product.id || isFavorite
+                    ? "Wishlisted"
+                    : "Wishlist"}
                 </button>
               </div>
             </div>

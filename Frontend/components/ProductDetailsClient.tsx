@@ -18,11 +18,13 @@ export default function ProductDetailsClient({
 }: ProductDetailsClientProps) {
   const addToCart = useStore((state) => state.addToCart);
   const addToFavorite = useStore((state) => state.addToFavorite);
+  const favoriteProduct = useStore((state) => state.favoriteProduct);
   const router = useRouter();
   const [selectedImage, setSelectedImage] = useState(
     product.thumbnail || product.images[0] || ""
   );
   const [cartState, setCartState] = useState<"idle" | "added" | "buying">("idle");
+  const [wishlistState, setWishlistState] = useState<"idle" | "saved">("idle");
 
   const allImages = [
     ...(product.thumbnail ? [product.thumbnail] : []),
@@ -36,6 +38,7 @@ export default function ProductDetailsClient({
 
   const savings = Math.max(originalPrice - product.price, 0);
   const isInStock = product.stock > 0;
+  const isFavorite = favoriteProduct.some((item) => item.id === product.id);
 
   const handleAddToCart = async () => {
     setCartState("added");
@@ -44,6 +47,21 @@ export default function ProductDetailsClient({
 
     window.setTimeout(() => {
       setCartState("idle");
+    }, 900);
+  };
+
+  const handleWishlist = async () => {
+    const wasFavorite = favoriteProduct.some((item) => item.id === product.id);
+    setWishlistState("saved");
+    await addToFavorite(product);
+    toast.success(
+      wasFavorite
+        ? `${product.title} removed from wishlist`
+        : `${product.title} added to wishlist`
+    );
+
+    window.setTimeout(() => {
+      setWishlistState("idle");
     }, 900);
   };
 
@@ -208,10 +226,16 @@ export default function ProductDetailsClient({
             </div>
             <button
               type="button"
-              onClick={() => void addToFavorite(product)}
-              className="w-full rounded-2xl border border-gray-200 bg-gray-100 px-6 py-4 text-base font-medium text-gray-800 transition hover:bg-gray-200"
+              onClick={() => void handleWishlist()}
+              className={`w-full rounded-2xl border px-6 py-4 text-base font-medium transition ${
+                wishlistState === "saved" || isFavorite
+                  ? "border-rose-200 bg-rose-100 text-rose-700 shadow-lg shadow-rose-100"
+                  : "border-gray-200 bg-gray-100 text-gray-800 hover:bg-gray-200"
+              }`}
             >
-              Add to Wishlist
+              {wishlistState === "saved" || isFavorite
+                ? "Wishlisted"
+                : "Add to Wishlist"}
             </button>
           </div>
 
