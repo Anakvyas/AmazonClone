@@ -1,93 +1,118 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import Image from "next/image"
-import Link from "next/link"
-import { getProducts } from "@/services/api"
-import { Product } from "@/types/product"
+import Image from "next/image";
+import { useEffect, useState } from "react";
+import { Product } from "@/types/product";
+import { getProducts } from "@/services/api";
+import CardButton from "./CardButton";
 
 const ProductsList = () => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const [products,setProducts] = useState<Product[]>([])
-  const [loading,setLoading] = useState(true)
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        setLoading(true);
+        setError("");
 
-  useEffect(()=>{
+        const data = await getProducts();
 
-    const fetchProducts = async () => {
+        if (Array.isArray(data)) {
+          setProducts(data);
+        } else {
+          console.warn("Unexpected API response:", data);
+          setProducts([]);
+        }
 
-      try{
-
-        const data = await getProducts()
-
-        setProducts(data)
-
-      }catch(error){
-
-        console.error("Error fetching products",error)
-
-      }finally{
-
-        setLoading(false)
-
+      } catch (err) {
+        console.error("Failed to fetch products", err);
+        setError("Unable to load products right now.");
+      } finally {
+        setLoading(false);
       }
+    };
 
-    }
+    loadProducts();
+  }, []);
 
-    fetchProducts()
+  if (loading) {
+    return (
+      <div className="py-10 text-center text-sm text-gray-600">
+        Loading products...
+      </div>
+    );
+  }
 
-  },[])
-
-  if(loading){
-    return <p className="text-center py-10">Loading products...</p>
+  if (error) {
+    return (
+      <div className="py-10 text-center text-sm text-red-600">
+        {error}
+      </div>
+    );
   }
 
   return (
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {products.map((product) => (
+        <article
+          key={product.id}
+          className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md"
+        >
+          {/* Product Image */}
+          <div className="relative mb-4 aspect-square overflow-hidden rounded-lg bg-gray-100">
 
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-
-      {products?.map((product)=>{
-
-        const img =
-          product.images?.[0]?.url ||
-          "https://placehold.co/300x200"
-
-        return(
-
-          <Link
-            key={product.id}
-            href={`/product/${product.id}`}
-            className="bg-white p-4 shadow hover:shadow-lg transition duration-200 group rounded"
-          >
-
-            <div className="w-full h-[200px] flex items-center justify-center">
-
+            {product.thumbnail ? (
               <Image
-                src={img}
-                alt={product.name}
-                width={200}
-                height={200}
-                className="object-contain group-hover:scale-105 transition duration-200"
+                src={product.thumbnail}
+                alt={product.title ?? "product image"}
+                fill
+                className="object-cover"
               />
+            ) : (
+              <div className="flex h-full items-center justify-center text-sm text-gray-400">
+                No image
+              </div>
+            )}
 
-            </div>
+          </div>
 
-            <h3 className="text-sm mt-3 line-clamp-2 text-gray-800">
-              {product.name}
-            </h3>
+          {/* Category */}
+          <p className="mb-1 text-xs uppercase tracking-wide text-gray-500">
+            {product.category ?? "Unknown"}
+          </p>
 
-            <p className="text-lg font-semibold mt-1 text-amazonBlue">
-              ${product.price}
-            </p>
+          {/* Title */}
+          <h2 className="line-clamp-2 min-h-12 text-base font-semibold text-gray-900">
+            {product.title}
+          </h2>
 
-          </Link>
+          {/* Description */}
+          <p className="mt-2 line-clamp-3 min-h-18 text-sm text-gray-600">
+            {product.description}
+          </p>
 
-        )
+          {/* Price + Stock */}
+          <div className="mt-4 flex items-center justify-between">
+            <span className="text-lg font-bold text-gray-900">
+              ${product.price?.toFixed(2)}
+            </span>
 
-      })}
+            <span className="text-xs text-gray-500">
+              {product.stock ?? 0} in stock
+            </span>
+          </div>
 
+          {/* Button */}
+          <div className="mt-4">
+            <CardButton product={product} />
+          </div>
+
+        </article>
+      ))}
     </div>
+  );
+};
 
-  )
-}
-
-export default ProductsList
+export default ProductsList;

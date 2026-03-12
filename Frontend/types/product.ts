@@ -1,11 +1,13 @@
-export interface ProductImage {
-  url: string
-}
-
 export interface Product {
-  id: number
-  name: string
-  price: number
-  description?: string
-  images?: ProductImage[]
+  id: number;
+  title: string;
+  description: string;
+  category: string;
+  price: number;
+  brand?: string;
+  rating?: number;
+  stock?: number;
+  thumbnail?: string;
+  images?: string[];
+  quantity?: number;
 }
