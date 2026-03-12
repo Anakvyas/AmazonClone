@@ -11,6 +11,10 @@ interface RequestOptions {
   token?: string | null;
   body?: unknown;
   cache?: RequestCache;
+  next?: {
+    revalidate?: number;
+    tags?: string[];
+  };
 }
 
 interface ApiResponse<T> {
@@ -27,7 +31,7 @@ interface ApiResponse<T> {
 
 async function request<T>(
   path: string,
-  { method = "GET", token, body, cache = "no-store" }: RequestOptions = {}
+  { method = "GET", token, body, cache = "no-store", next }: RequestOptions = {}
 ): Promise<T> {
   const url = `${API_BASE}${path}`;
 
@@ -44,6 +48,7 @@ async function request<T>(
     headers,
     body: body ? JSON.stringify(body) : undefined,
     cache,
+    next,
   });
 
   let json: ApiResponse<T>;
@@ -138,21 +143,36 @@ export interface ProductQuery {
   search?: string;
   category?: string;
   page?: number;
+  limit?: number;
+}
+
+export interface PaginatedProductsResponse {
+  items: BackendProduct[];
+  page: number;
+  limit: number;
+  total: number;
+  hasMore: boolean;
 }
 
 export async function getProducts(
-  query: ProductQuery = {}
-): Promise<BackendProduct[]> {
+  query: ProductQuery = {},
+  requestOptions: Pick<RequestOptions, "cache" | "next"> = {}
+): Promise<PaginatedProductsResponse> {
   const params = new URLSearchParams();
 
   if (query.search) params.set("search", query.search);
   if (query.category) params.set("category", query.category);
   if (typeof query.page === "number") params.set("page", String(query.page));
+  if (typeof query.limit === "number") params.set("limit", String(query.limit));
 
   const qs = params.toString();
   const path = qs ? `/api/products?${qs}` : "/api/products";
 
-  return request<BackendProduct[]>(path, { method: "GET", cache: "no-store" });
+  return request<PaginatedProductsResponse>(path, {
+    method: "GET",
+    cache: requestOptions.cache ?? "no-store",
+    next: requestOptions.next,
+  });
 }
 
 // Optional helper if you want to map backend products

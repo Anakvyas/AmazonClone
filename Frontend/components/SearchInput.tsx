@@ -6,7 +6,7 @@ import Link from "next/link";
 import { CiSearch } from "react-icons/ci";
 import { Product } from "@/type";
 import CategoryListView from "./CategoryListView";
-import { BackendProduct, getProducts, mapBackendProductToUi } from "@/service/api";
+import { getProducts, mapBackendProductToUi } from "@/service/api";
 
 const SearchInput = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -21,9 +21,9 @@ const SearchInput = () => {
 
     const load = async () => {
       try {
-        const backendProducts: BackendProduct[] = await getProducts();
+        const response = await getProducts({ page: 1, limit: 50 });
         if (!isMounted) return;
-        const mapped = backendProducts.map(mapBackendProductToUi);
+        const mapped = response.items.map(mapBackendProductToUi);
         setProducts(mapped);
       } catch {
         // Swallow errors – search is a convenience feature.

@@ -4,12 +4,13 @@ exports.getProducts = async(req,res,next)=>{
 
  try{
 
-  const {search,category,page} = req.query
+  const {search,category,page,limit} = req.query
 
   const products = await productService.getProducts({
    search,
    category,
-   page
+   page,
+   limit
   })
 
   res.json({

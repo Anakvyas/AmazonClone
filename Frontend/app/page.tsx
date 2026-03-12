@@ -1,5 +1,3 @@
-"use client";
-
 import {
   bannerFive,
   bannerFour,
@@ -13,9 +11,15 @@ import {
   CarouselContent,
   CarouselItem,
 } from "@/components/ui/carousel";
+import { getProducts } from "@/service/api";
 import Image from "next/image";
 
-export default function Home() {
+export default async function Home() {
+  const initialProducts = await getProducts(
+    { page: 1, limit: 10 },
+    { cache: "force-cache", next: { revalidate: 60, tags: ["products"] } }
+  );
+
   const bannerImages = [
     { title: "bannerOne", source: bannerOne },
     { title: "bannerTwo", source: bannerTwo },
@@ -40,7 +44,10 @@ export default function Home() {
         </CarouselContent>
       </Carousel>
       <div className="p-10">
-        <ProductsList />
+        <ProductsList
+          initialProducts={initialProducts.items}
+          initialHasMore={initialProducts.hasMore}
+        />
       </div>
     </div>
   );

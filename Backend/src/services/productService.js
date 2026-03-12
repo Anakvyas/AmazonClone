@@ -2,8 +2,10 @@ const prisma = require("../config/prisma")
 const { client: redis, isRedisReady } = require("../config/redis")
 
 exports.getProducts = async ({ search, category, page = 1, limit = 10 }) => {
+  const normalizedPage = Math.max(Number(page) || 1, 1)
+  const normalizedLimit = Math.max(Number(limit) || 10, 1)
 
-  const cacheKey = `products:${search}:${category}:${page}`
+  const cacheKey = `products:${search || ""}:${category || ""}:${normalizedPage}:${normalizedLimit}`
 
   if (isRedisReady()) {
     try {
@@ -17,37 +19,48 @@ exports.getProducts = async ({ search, category, page = 1, limit = 10 }) => {
     }
   }
 
-  const products = await prisma.product.findMany({
-    where: {
-      name: {
-        contains: search || "",
-        mode: "insensitive"
-      },
-      category: category
-        ? {
-            is: {
-              name: category
-            }
+  const where = {
+    name: {
+      contains: search || "",
+      mode: "insensitive"
+    },
+    category: category
+      ? {
+          is: {
+            name: category
           }
-        : undefined
-    },
+        }
+      : undefined
+  }
 
-    include: {
-      category: true,
-      images:true
-    },
+  const [products, total] = await prisma.$transaction([
+    prisma.product.findMany({
+      where,
+      include: {
+        category: true,
+        images: true
+      },
+      skip: (normalizedPage - 1) * normalizedLimit,
+      take: normalizedLimit
+    }),
+    prisma.product.count({ where })
+  ])
 
-    skip: (page - 1) * limit,
-    take: limit
-  })
+  const payload = {
+    items: products,
+    page: normalizedPage,
+    limit: normalizedLimit,
+    total,
+    hasMore: normalizedPage * normalizedLimit < total
+  }
 
   if (isRedisReady()) {
     try {
-      await redis.setEx(cacheKey, 60, JSON.stringify(products))
+      await redis.setEx(cacheKey, 60, JSON.stringify(payload))
     } catch (err) {
       console.warn("Redis write failed, skipping cache:", err.message)
     }
   }
 
-  return products
+  return payload
 }
