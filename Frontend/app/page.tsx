@@ -5,14 +5,9 @@ import {
   bannerThree,
   bannerTwo,
 } from "@/assets";
+import HomeBannerCarousel from "@/components/HomeBannerCarousel";
 import ProductsList from "@/components/ProductsList";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-} from "@/components/ui/carousel";
 import { getProducts } from "@/service/api";
-import Image from "next/image";
 
 interface HomePageProps {
   searchParams?: Promise<{
@@ -41,20 +36,7 @@ export default async function Home({ searchParams }: HomePageProps) {
   ];
   return (
     <div>
-      <Carousel>
-        <CarouselContent>
-          {bannerImages?.map((item) => (
-            <CarouselItem key={item?.title}>
-              <Image
-                src={item?.source}
-                alt="bannerOne"
-                className="w-full"
-                height={1080}
-              />
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-      </Carousel>
+      <HomeBannerCarousel images={bannerImages} />
       <div className="p-10">
         <ProductsList
           initialProducts={initialProducts.items}
