@@ -11,7 +11,7 @@ const CartButton = () => {
   return (
     <Link
       href={"/cart"}
-      className="flex items-center px-2 border border-transparent hover:border-white cursor-pointer duration-300 h-[70%] relative"
+      className="relative flex h-[70%] items-center border border-transparent px-2 duration-300 hover:border-white"
     >
       <Image
         src={cartIcon}

@@ -104,7 +104,7 @@ const SearchInput = () => {
   return (
     <div
       ref={searchContainerRef}
-      className="flex-1 h-10 mx-4 flex items-center justify-between relative"
+      className="order-last flex h-10 w-full items-center justify-between md:order-none md:mx-4 md:flex-1 relative"
     >
       <CategoryListView
         categories={categories}

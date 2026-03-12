@@ -12,7 +12,7 @@ const HeaderBottom = () => {
   };
   return (
     <div className="bg-amazonLight text-white/80">
-      <div className="flex items-center space-x-3 py-1 pl-6 text-sm">
+      <div className="flex items-center space-x-3 overflow-x-auto px-3 py-2 text-sm md:pl-6">
         <button className="link flex items-center" onClick={toggleSidebar}>
           <Menu className="text-xl mr-1" />
           All
@@ -20,9 +20,9 @@ const HeaderBottom = () => {
 
         <p className="link">Today&apos;s Deals</p>
         <p className="link">Customer Service</p>
-        <p className="link hidden lg:inline-flex">Registry</p>
-        <p className="link hidden lg:inline-flex">Gift Cards</p>
-        <p className="link hidden lg:inline-flex">Sell</p>
+        <p className="link hidden md:inline-flex">Registry</p>
+        <p className="link hidden md:inline-flex">Gift Cards</p>
+        <p className="link hidden md:inline-flex">Sell</p>
         <Link href="/products" className="link">
           All Products
         </Link>

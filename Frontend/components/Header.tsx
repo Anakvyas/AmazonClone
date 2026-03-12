@@ -14,8 +14,8 @@ import OrderBtn from "./OrderBtn";
 const Header = () => {
   return (
     <header className="bg-transparent sticky top-0 z-50">
-      <div className="w-full h-20 bg-amazonBlue text-lightText sticky top-0 z-50">
-        <div className="h-full w-full mx-auto inline-flex items-center md:justify-between gap-3 px-4">
+      <div className="w-full bg-amazonBlue text-lightText sticky top-0 z-50">
+        <div className="mx-auto flex w-full flex-wrap items-center gap-3 px-3 py-3 md:h-20 md:flex-nowrap md:justify-between md:px-4">
           {/* Logo */}
           <Link href={"/"}>
             <div className="headerItem">

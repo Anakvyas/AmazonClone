@@ -4,6 +4,31 @@ const API_BASE =
   process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") ||
   "http://localhost:8000";
 
+function resolveApiBase() {
+  if (typeof window === "undefined") {
+    return API_BASE;
+  }
+
+  try {
+    const configuredUrl = new URL(API_BASE);
+    const browserHost = window.location.hostname;
+    const isLocalConfig =
+      configuredUrl.hostname === "localhost" ||
+      configuredUrl.hostname === "127.0.0.1";
+    const isRemoteBrowser =
+      browserHost !== "localhost" && browserHost !== "127.0.0.1";
+
+    if (isLocalConfig && isRemoteBrowser) {
+      configuredUrl.hostname = browserHost;
+      return configuredUrl.toString().replace(/\/+$/, "");
+    }
+  } catch {
+    return API_BASE;
+  }
+
+  return API_BASE;
+}
+
 type HttpMethod = "GET" | "POST" | "DELETE";
 
 interface RequestOptions {
@@ -33,7 +58,7 @@ async function request<T>(
   path: string,
   { method = "GET", token, body, cache = "no-store", next }: RequestOptions = {}
 ): Promise<T> {
-  const url = `${API_BASE}${path}`;
+  const url = `${resolveApiBase()}${path}`;
 
   const headers: HeadersInit = {
     "Content-Type": "application/json",

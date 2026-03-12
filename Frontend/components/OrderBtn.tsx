@@ -5,7 +5,7 @@ const OrderBtn = () => {
   return (
     <Link
       href={"/orders"}
-      className="text-xs text-gray-100 flex flex-col justify-center px-2 border border-transparent hover:border-white cursor-pointer duration-300 h-[70%] relative"
+      className="relative hidden h-[70%] cursor-pointer flex-col justify-center border border-transparent px-2 text-xs text-gray-100 duration-300 hover:border-white md:flex"
     >
       <p>Orders</p>
       <p className="text-white font-bold">& Itemlists</p>

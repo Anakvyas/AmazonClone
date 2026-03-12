@@ -25,6 +25,7 @@ const ProductsList = ({
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeCartId, setActiveCartId] = useState<number | null>(null);
+  const [isMobileView, setIsMobileView] = useState(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
 
@@ -52,9 +53,24 @@ const ProductsList = ({
   }, [initialHasMore, initialProducts]);
 
   useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 767px)");
+
+    const syncMobileView = () => {
+      setIsMobileView(mediaQuery.matches);
+    };
+
+    syncMobileView();
+    mediaQuery.addEventListener("change", syncMobileView);
+
+    return () => {
+      mediaQuery.removeEventListener("change", syncMobileView);
+    };
+  }, []);
+
+  useEffect(() => {
     const node = sentinelRef.current;
 
-    if (!node || !hasMore || loadingMore) {
+    if (!node || !hasMore || loadingMore || isMobileView) {
       return;
     }
 
@@ -77,7 +93,7 @@ const ProductsList = ({
     return () => {
       observer.disconnect();
     };
-  }, [hasMore, loadingMore]);
+  }, [hasMore, isMobileView, loadingMore]);
 
   useEffect(() => {
     if (!loadingMore) {
@@ -128,6 +144,14 @@ const ProductsList = ({
       isCancelled = true;
     };
   }, [category, loadingMore, page, searchQuery]);
+
+  useEffect(() => {
+    if (!isMobileView || !hasMore || loadingMore) {
+      return;
+    }
+
+    setLoadingMore(true);
+  }, [hasMore, isMobileView, loadingMore, page, products.length]);
 
   if (error) {
     return (
@@ -209,7 +233,11 @@ const ProductsList = ({
       {hasMore ? (
         <div className="space-y-3 py-4 text-center text-sm text-gray-500">
           <div ref={sentinelRef}>
-            {loadingMore ? "Loading more products..." : "Scroll to load more"}
+            {loadingMore
+              ? "Loading more products..."
+              : isMobileView
+                ? "Loading full catalog..."
+                : "Scroll to load more"}
           </div>
           <button
             type="button"
