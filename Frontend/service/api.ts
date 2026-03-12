@@ -4,31 +4,6 @@ const API_BASE =
   process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") ||
   "http://localhost:8000";
 
-function resolveApiBase() {
-  if (typeof window === "undefined") {
-    return API_BASE;
-  }
-
-  try {
-    const configuredUrl = new URL(API_BASE);
-    const browserHost = window.location.hostname;
-    const isLocalConfig =
-      configuredUrl.hostname === "localhost" ||
-      configuredUrl.hostname === "127.0.0.1";
-    const isRemoteBrowser =
-      browserHost !== "localhost" && browserHost !== "127.0.0.1";
-
-    if (isLocalConfig && isRemoteBrowser) {
-      configuredUrl.hostname = browserHost;
-      return configuredUrl.toString().replace(/\/+$/, "");
-    }
-  } catch {
-    return API_BASE;
-  }
-
-  return API_BASE;
-}
-
 type HttpMethod = "GET" | "POST" | "DELETE";
 
 interface RequestOptions {
@@ -36,10 +11,6 @@ interface RequestOptions {
   token?: string | null;
   body?: unknown;
   cache?: RequestCache;
-  next?: {
-    revalidate?: number;
-    tags?: string[];
-  };
 }
 
 interface ApiResponse<T> {
@@ -56,9 +27,9 @@ interface ApiResponse<T> {
 
 async function request<T>(
   path: string,
-  { method = "GET", token, body, cache = "no-store", next }: RequestOptions = {}
+  { method = "GET", token, body, cache = "no-store" }: RequestOptions = {}
 ): Promise<T> {
-  const url = `${resolveApiBase()}${path}`;
+  const url = `${API_BASE}${path}`;
 
   const headers: HeadersInit = {
     "Content-Type": "application/json",
@@ -73,7 +44,6 @@ async function request<T>(
     headers,
     body: body ? JSON.stringify(body) : undefined,
     cache,
-    next,
   });
 
   let json: ApiResponse<T>;
@@ -149,23 +119,6 @@ export async function loginUser(input: {
   };
 }
 
-export async function loginWithGoogle(credential: string): Promise<AuthUser> {
-  const res = await request<{
-    token: string;
-    user: { id: number; username: string; email: string };
-  }>("/api/auth/google", {
-    method: "POST",
-    body: { credential },
-  });
-
-  return {
-    id: res.user.id,
-    name: res.user.username,
-    email: res.user.email,
-    token: res.token,
-  };
-}
-
 // ========== Products ==========
 
 export interface BackendProduct {
@@ -185,50 +138,24 @@ export interface ProductQuery {
   search?: string;
   category?: string;
   page?: number;
-  limit?: number;
-}
-
-export interface PaginatedProductsResponse {
-  items: BackendProduct[];
-  page: number;
-  limit: number;
-  total: number;
-  hasMore: boolean;
 }
 
 export async function getProducts(
-  query: ProductQuery = {},
-  requestOptions: Pick<RequestOptions, "cache" | "next"> = {}
-): Promise<PaginatedProductsResponse> {
+  query: ProductQuery = {}
+): Promise<BackendProduct[]> {
   const params = new URLSearchParams();
 
   if (query.search) params.set("search", query.search);
   if (query.category) params.set("category", query.category);
   if (typeof query.page === "number") params.set("page", String(query.page));
-  if (typeof query.limit === "number") params.set("limit", String(query.limit));
 
   const qs = params.toString();
   const path = qs ? `/api/products?${qs}` : "/api/products";
 
-  return request<PaginatedProductsResponse>(path, {
-    method: "GET",
-    cache: requestOptions.cache ?? "no-store",
-    next: requestOptions.next,
-  });
+  return request<BackendProduct[]>(path, { method: "GET", cache: "no-store" });
 }
 
-export async function getProductById(
-  productId: number | string,
-  requestOptions: Pick<RequestOptions, "cache" | "next"> = {}
-): Promise<BackendProduct> {
-  return request<BackendProduct>(`/api/products/${productId}`, {
-    method: "GET",
-    cache: requestOptions.cache ?? "no-store",
-    next: requestOptions.next,
-  });
-}
-
-// Optional helper if you want to map backend products
+// Optional helper if we want to map backend products
 // into the richer UI Product type.
 export function mapBackendProductToUi(p: BackendProduct): Product {
   return {
@@ -349,7 +276,6 @@ export interface OrderDto {
     productId: number;
     quantity: number;
     price: number;
-    product: BackendProduct;
   }[];
 }
 
