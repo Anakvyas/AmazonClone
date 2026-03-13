@@ -14,5 +14,6 @@ router.post("/register", authRateLimiter, controller.register)
 
 router.post("/login", authRateLimiter, controller.login)
 router.post("/google", authRateLimiter, controller.googleLogin)
+router.post("/demo", controller.demoLogin)
 
 module.exports = router

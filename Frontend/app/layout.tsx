@@ -3,6 +3,7 @@ import "./globals.css";
 import Layout from "@/components/Layout";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import DemoSessionBootstrap from "@/components/DemoSessionBootstrap";
 import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
@@ -30,6 +31,7 @@ export default function RootLayout({
         />
       </head>
       <body className={`antialiased`}>
+        <DemoSessionBootstrap />
         <Layout>
           <Header />
           {children}

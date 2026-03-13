@@ -1,6 +1,5 @@
 "use client";
 
-import { buildAuthPath } from "@/lib/authRedirect";
 import { useStore } from "@/lib/useStore";
 import Image from "next/image";
 import Link from "next/link";
@@ -13,7 +12,7 @@ export default function CartPage() {
   const addToCart = useStore((state) => state.addToCart);
   const removeFromCart = useStore((state) => state.removeFromCart);
   const resetCart = useStore((state) => state.resetCart);
-  const isLoggedIn = useStore((state) => state.isLoggedIn);
+  const ensureDemoSession = useStore((state) => state.ensureDemoSession);
 
   const total = cartProduct.reduce(
     (sum, item) => sum + (item.price || 0) * (item.quantity || 1),
@@ -24,13 +23,10 @@ export default function CartPage() {
     0
   );
 
-  const handleCheckout = () => {
-    if (!isLoggedIn) {
-      router.push(buildAuthPath("/login", "/checkout"));
-      return;
-    }
-
+  const handleCheckout = async () => {
     if (!cartProduct.length) return;
+
+    await ensureDemoSession();
     router.push("/checkout");
   };
 
@@ -48,16 +44,14 @@ export default function CartPage() {
             </Link>
             .
           </p>
-          {isLoggedIn && (
-            <div className="flex justify-center">
-              <Link
-                href="/orders"
-                className="inline-flex items-center justify-center rounded-full border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-800 transition hover:bg-gray-50"
-              >
-                See all orders
-              </Link>
-            </div>
-          )}
+          <div className="flex justify-center">
+            <Link
+              href="/orders"
+              className="inline-flex items-center justify-center rounded-full border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-800 transition hover:bg-gray-50"
+            >
+              See all orders
+            </Link>
+          </div>
         </div>
       </div>
     );

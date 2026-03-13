@@ -1,6 +1,5 @@
 "use client";
 
-import { buildAuthPath } from "@/lib/authRedirect";
 import { createOrder } from "@/service/api";
 import { useStore } from "@/lib/useStore";
 import { useRouter } from "next/navigation";
@@ -32,10 +31,10 @@ const initialAddress: ShippingAddress = {
 export default function CheckoutPage() {
   const router = useRouter();
   const cartProduct = useStore((state) => state.cartProduct);
-  const isLoggedIn = useStore((state) => state.isLoggedIn);
   const token = useStore((state) => state.token);
   const resetCart = useStore((state) => state.resetCart);
   const user = useStore((state) => state.user);
+  const ensureDemoSession = useStore((state) => state.ensureDemoSession);
 
   const [shipping, setShipping] = useState<ShippingAddress>({
     ...initialAddress,
@@ -56,15 +55,16 @@ export default function CheckoutPage() {
   const total = subtotal + shippingFee;
 
   useEffect(() => {
-    if (!isLoggedIn) {
-      router.replace(buildAuthPath("/login", "/checkout"));
-      return;
-    }
-
     if (!cartProduct.length) {
       router.replace("/cart");
     }
-  }, [cartProduct.length, isLoggedIn, router]);
+  }, [cartProduct.length, router]);
+
+  useEffect(() => {
+    void ensureDemoSession().catch(() => {
+      // Checkout can still show a friendly error on submit if auth bootstrap fails.
+    });
+  }, [ensureDemoSession]);
 
   useEffect(() => {
     if (user?.name) {
@@ -89,8 +89,17 @@ export default function CheckoutPage() {
     event.preventDefault();
     setError(null);
 
-    if (!token) {
-      router.replace(buildAuthPath("/login", "/checkout"));
+    let sessionToken = token;
+
+    if (!sessionToken) {
+      await ensureDemoSession();
+      sessionToken = useStore.getState().token;
+    }
+
+    if (!sessionToken) {
+      const message = "Unable to start demo checkout right now. Please try again.";
+      setError(message);
+      toast.error(message);
       return;
     }
 
@@ -121,10 +130,10 @@ export default function CheckoutPage() {
         quantity: item.quantity || 1,
       }));
 
-      const result = await createOrder({ items, token });
+      const result = await createOrder({ items, token: sessionToken });
       resetCart();
       toast.success(`Order #${result.orderId} placed successfully.`);
-      router.push("/orders");
+      router.push(`/orders/confirmation?orderId=${result.orderId}`);
     } catch (err) {
       const message =
         err instanceof Error

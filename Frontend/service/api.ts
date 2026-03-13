@@ -146,6 +146,22 @@ export async function loginWithGoogle(
   };
 }
 
+export async function loginDemoUser(): Promise<AuthUser> {
+  const res = await request<{
+    token: string;
+    user: { id: number; username: string; email: string };
+  }>("/api/auth/demo", {
+    method: "POST",
+  });
+
+  return {
+    id: res.user.id,
+    name: res.user.username,
+    email: res.user.email,
+    token: res.token,
+  };
+}
+
 // ========== Products ==========
 
 export interface BackendProduct {

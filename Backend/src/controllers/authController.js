@@ -3,6 +3,8 @@ const { hashPassword, comparePassword } = require("../utils/hash")
 const { generateToken } = require("../utils/jwt")
 const axios = require("axios")
 const crypto = require("crypto")
+const DEMO_EMAIL = "demo.user@amazonclone.local"
+const DEMO_USERNAME = "demo_user"
 
 async function buildUniqueUsername(baseUsername) {
   const normalized = (baseUsername || "user")
@@ -19,6 +21,28 @@ async function buildUniqueUsername(baseUsername) {
   }
 
   return candidate
+}
+
+async function getOrCreateDemoUser() {
+  let user = await prisma.user.findUnique({
+    where: { email: DEMO_EMAIL }
+  })
+
+  if (user) {
+    return user
+  }
+
+  const hashedPassword = await hashPassword(crypto.randomUUID())
+
+  user = await prisma.user.create({
+    data: {
+      username: DEMO_USERNAME,
+      email: DEMO_EMAIL,
+      password: hashedPassword
+    }
+  })
+
+  return user
 }
 
 exports.register = async (req,res,next)=>{
@@ -143,6 +167,25 @@ exports.googleLogin = async (req,res,next)=>{
     })
 
   }catch(err){
+    next(err)
+  }
+
+}
+
+exports.demoLogin = async (req, res, next) => {
+
+  try {
+
+    const user = await getOrCreateDemoUser()
+    const token = generateToken(user.id)
+
+    res.json({
+      success: true,
+      token,
+      user
+    })
+
+  } catch (err) {
     next(err)
   }
 
