@@ -1,12 +1,14 @@
 "use client";
 
 import { buildAuthPath } from "@/lib/authRedirect";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useStore } from "@/lib/useStore";
 import type { OrderDto } from "@/service/api";
 import { getOrders } from "@/service/api";
+
+const PAGE_SIZE = 5;
 
 function OrdersLoadingSkeleton() {
   return (
@@ -64,8 +66,12 @@ function OrdersLoadingSkeleton() {
 export default function OrdersPage() {
   const isLoggedIn = useStore((state) => state.isLoggedIn);
   const token = useStore((state) => state.token);
+  const ordersTopRef = useRef<HTMLDivElement | null>(null);
 
   const [orders, setOrders] = useState<OrderDto[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalOrders, setTotalOrders] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -78,9 +84,11 @@ export default function OrdersPage() {
 
     const load = async () => {
       try {
-        const data = await getOrders(token);
+        const data = await getOrders({ token, page, limit: PAGE_SIZE });
         if (!isMounted) return;
-        setOrders(data);
+        setOrders(data.items);
+        setTotalOrders(data.total);
+        setHasMore(data.hasMore);
       } catch (err) {
         if (!isMounted) return;
         const message =
@@ -99,7 +107,18 @@ export default function OrdersPage() {
     return () => {
       isMounted = false;
     };
-  }, [isLoggedIn, token]);
+  }, [isLoggedIn, page, token]);
+
+  useEffect(() => {
+    if (page === 1) {
+      return;
+    }
+
+    ordersTopRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }, [page]);
 
   if (!isLoggedIn) {
     return (
@@ -125,7 +144,7 @@ export default function OrdersPage() {
 
   return (
     <div className="bg-gray-100 min-h-[60vh] px-4 py-10">
-      <div className="max-w-5xl mx-auto space-y-4">
+      <div ref={ordersTopRef} className="max-w-5xl mx-auto space-y-4">
         <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div>
             <h1 className="text-3xl font-semibold text-gray-950">Your Orders</h1>
@@ -134,7 +153,7 @@ export default function OrdersPage() {
             </p>
           </div>
           <p className="text-sm text-gray-500">
-            {orders.length} order{orders.length === 1 ? "" : "s"} found
+            {totalOrders} order{totalOrders === 1 ? "" : "s"} found
           </p>
         </div>
         {loading && <OrdersLoadingSkeleton />}
@@ -253,6 +272,31 @@ export default function OrdersPage() {
             </div>
           ))}
         </div>
+        {!loading && !error && totalOrders > 0 && (
+          <div className="flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-gray-600">
+              Page {page} of {Math.max(1, Math.ceil(totalOrders / PAGE_SIZE))}
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setPage((current) => Math.max(1, current - 1))}
+                disabled={page === 1 || loading}
+                className="rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Previous
+              </button>
+              <button
+                type="button"
+                onClick={() => setPage((current) => current + 1)}
+                disabled={!hasMore || loading}
+                className="rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

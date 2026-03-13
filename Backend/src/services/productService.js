@@ -1,5 +1,5 @@
 const prisma = require("../config/prisma")
-const { client: redis, isRedisReady } = require("../config/redis")
+const { getJson, setJson } = require("../utils/cache")
 
 exports.getProducts = async ({ search, category, page = 1, limit = 10 }) => {
   const normalizedPage = Math.max(Number(page) || 1, 1)
@@ -7,16 +7,10 @@ exports.getProducts = async ({ search, category, page = 1, limit = 10 }) => {
 
   const cacheKey = `products:${search || ""}:${category || ""}:${normalizedPage}:${normalizedLimit}`
 
-  if (isRedisReady()) {
-    try {
-      const cached = await redis.get(cacheKey)
+  const cached = await getJson(cacheKey)
 
-      if (cached) {
-        return JSON.parse(cached)
-      }
-    } catch (err) {
-      console.warn("Redis read failed, skipping cache:", err.message)
-    }
+  if (cached) {
+    return cached
   }
 
   const where = {
@@ -54,13 +48,7 @@ exports.getProducts = async ({ search, category, page = 1, limit = 10 }) => {
     hasMore: normalizedPage * normalizedLimit < total
   }
 
-  if (isRedisReady()) {
-    try {
-      await redis.setEx(cacheKey, 60, JSON.stringify(payload))
-    } catch (err) {
-      console.warn("Redis write failed, skipping cache:", err.message)
-    }
-  }
+  await setJson(cacheKey, 60, payload)
 
   return payload
 }
@@ -74,16 +62,10 @@ exports.getProductById = async (productId) => {
 
   const cacheKey = `product:${normalizedId}`
 
-  if (isRedisReady()) {
-    try {
-      const cached = await redis.get(cacheKey)
+  const cached = await getJson(cacheKey)
 
-      if (cached) {
-        return JSON.parse(cached)
-      }
-    } catch (err) {
-      console.warn("Redis read failed, skipping cache:", err.message)
-    }
+  if (cached) {
+    return cached
   }
 
   const product = await prisma.product.findUnique({
@@ -98,13 +80,7 @@ exports.getProductById = async (productId) => {
     return null
   }
 
-  if (isRedisReady()) {
-    try {
-      await redis.setEx(cacheKey, 60, JSON.stringify(product))
-    } catch (err) {
-      console.warn("Redis write failed, skipping cache:", err.message)
-    }
-  }
+  await setJson(cacheKey, 60, product)
 
   return product
 }

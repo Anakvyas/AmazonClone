@@ -315,7 +315,6 @@ export async function getWishlist(token: string): Promise<WishlistItemDto[]> {
 export interface CreateOrderItemInput {
   productId: number;
   quantity: number;
-  price: number;
 }
 
 export interface OrderDto {
@@ -333,6 +332,14 @@ export interface OrderDto {
   }[];
 }
 
+export interface OrdersResponse {
+  items: OrderDto[];
+  page: number;
+  limit: number;
+  total: number;
+  hasMore: boolean;
+}
+
 export async function createOrder(params: {
   items: CreateOrderItemInput[];
   token: string;
@@ -344,9 +351,18 @@ export async function createOrder(params: {
   });
 }
 
-export async function getOrders(token: string): Promise<OrderDto[]> {
-  return request<OrderDto[]>("/api/orders/history", {
+export async function getOrders(params: {
+  token: string;
+  page?: number;
+  limit?: number;
+}): Promise<OrdersResponse> {
+  const query = new URLSearchParams({
+    page: String(params.page ?? 1),
+    limit: String(params.limit ?? 5),
+  });
+
+  return request<OrdersResponse>(`/api/orders/history?${query.toString()}`, {
     method: "GET",
-    token,
+    token: params.token,
   });
 }

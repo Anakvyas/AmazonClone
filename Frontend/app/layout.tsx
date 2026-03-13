@@ -6,8 +6,14 @@ import Footer from "@/components/Footer";
 import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
-  title: "Amazon online shopping",
-  description: "Amazon clone for learning purpose",
+  title: "Amazon Online Shopping",
+  description:
+    "Amazon online shopping clone for browsing products, checkout, and order tracking.",
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/apple-icon.png",
+  },
 };
 
 export default function RootLayout({

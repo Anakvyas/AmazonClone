@@ -119,7 +119,6 @@ export default function CheckoutPage() {
       const items = cartProduct.map((item) => ({
         productId: item.id,
         quantity: item.quantity || 1,
-        price: item.price || 0,
       }));
 
       const result = await createOrder({ items, token });

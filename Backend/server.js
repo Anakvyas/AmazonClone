@@ -12,8 +12,16 @@ const orderRoutes = require("./src/routes/orderRoutes")
 const wishlistRoutes = require("./src/routes/wishlistRoutes")
 
 const errorMiddleware = require("./src/middlewares/errorMiddleware")
+const { createRateLimiter } = require("./src/middlewares/rateLimitMiddleware")
 
 const app = express()
+
+const apiRateLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 300,
+  keyPrefix: "api",
+  message: "Too many requests. Please try again in a few minutes."
+})
 
 app.use(cors({
   origin: "*",
@@ -29,6 +37,7 @@ app.use(
 )
 
 app.use(morgan("dev"))
+app.use(apiRateLimiter)
 
 app.use("/api/products", productRoutes)
 app.use("/api/auth", authRoutes)

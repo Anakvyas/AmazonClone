@@ -1,4 +1,3 @@
-const prisma = require("../config/prisma")
 const orderService = require("../services/orderService")
 
 exports.createOrder = async(req,res,next)=>{
@@ -7,8 +6,7 @@ exports.createOrder = async(req,res,next)=>{
 
   const order = await orderService.createOrder(
     req.userId,
-    req.body.items,
-    null
+    req.body.items
   )
 
   res.json({
@@ -27,24 +25,9 @@ exports.createOrder = async(req,res,next)=>{
 exports.getOrderHistory = async(req,res,next)=>{
 
  try{
-
-  const orders = await prisma.order.findMany({
-    where:{userId:req.userId},
-    include:{
-      items:{
-        include:{
-          product:{
-            include:{
-              images:true,
-              category:true
-            }
-          }
-        }
-      }
-    },
-    orderBy:{
-      createdAt:"desc"
-    }
+  const orders = await orderService.getOrderHistory(req.userId, {
+    page: req.query.page,
+    limit: req.query.limit
   })
 
   res.json({

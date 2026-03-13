@@ -20,12 +20,12 @@ const OrderBtn = () => {
 
     const loadOrders = async () => {
       try {
-        const orders = await getOrders(token);
+        const orders = await getOrders({ token, page: 1, limit: 1 });
         if (!isMounted) {
           return;
         }
 
-        setOrderCount(orders.length);
+        setOrderCount(orders.total);
       } catch {
         if (isMounted) {
           setOrderCount(0);
