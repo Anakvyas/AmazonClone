@@ -1,5 +1,6 @@
 "use client";
 
+import { normalizeAuthRedirect } from "@/lib/authRedirect";
 import Script from "next/script";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useState } from "react";
@@ -27,15 +28,20 @@ declare global {
 
 interface GoogleAuthButtonProps {
   mode: "login" | "signup";
+  redirectPath?: string;
 }
 
-export default function GoogleAuthButton({ mode }: GoogleAuthButtonProps) {
+export default function GoogleAuthButton({
+  mode,
+  redirectPath,
+}: GoogleAuthButtonProps) {
   const router = useRouter();
   const googleLogin = useStore((state) => state.googleLogin);
   const [scriptReady, setScriptReady] = useState(false);
   const [pending, setPending] = useState(false);
   const containerId = useId().replace(/:/g, "");
   const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+  const nextPath = normalizeAuthRedirect(redirectPath);
 
   useEffect(() => {
     if (!scriptReady || !clientId || !window.google) {
@@ -66,7 +72,7 @@ export default function GoogleAuthButton({ mode }: GoogleAuthButtonProps) {
               ? "Signed in with Google."
               : "Account created with Google."
           );
-          router.push("/");
+          router.push(nextPath);
         } catch (err) {
           const message =
             err instanceof Error
@@ -86,7 +92,7 @@ export default function GoogleAuthButton({ mode }: GoogleAuthButtonProps) {
       text: mode === "login" ? "signin_with" : "signup_with",
       shape: "rectangular",
     });
-  }, [clientId, containerId, googleLogin, mode, router, scriptReady]);
+  }, [clientId, containerId, googleLogin, mode, nextPath, router, scriptReady]);
 
   if (!clientId) {
     return (

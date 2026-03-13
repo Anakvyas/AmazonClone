@@ -1,5 +1,6 @@
 "use client";
 
+import { buildAuthPath } from "@/lib/authRedirect";
 import { useStore } from "@/lib/useStore";
 import Image from "next/image";
 import Link from "next/link";
@@ -48,7 +49,7 @@ export default function WishlistPage() {
             {!isLoggedIn && (
               <button
                 type="button"
-                onClick={() => router.push("/login")}
+                onClick={() => router.push(buildAuthPath("/login", "/wishlist"))}
                 className="inline-flex items-center justify-center rounded-full border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-800 transition hover:bg-gray-50"
               >
                 Sign in

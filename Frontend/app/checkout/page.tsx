@@ -1,5 +1,6 @@
 "use client";
 
+import { buildAuthPath } from "@/lib/authRedirect";
 import { createOrder } from "@/service/api";
 import { useStore } from "@/lib/useStore";
 import { useRouter } from "next/navigation";
@@ -56,7 +57,7 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (!isLoggedIn) {
-      router.replace("/login");
+      router.replace(buildAuthPath("/login", "/checkout"));
       return;
     }
 
@@ -89,7 +90,7 @@ export default function CheckoutPage() {
     setError(null);
 
     if (!token) {
-      router.replace("/login");
+      router.replace(buildAuthPath("/login", "/checkout"));
       return;
     }
 
@@ -124,7 +125,7 @@ export default function CheckoutPage() {
       const result = await createOrder({ items, token });
       resetCart();
       toast.success(`Order #${result.orderId} placed successfully.`);
-      router.push(`/orders/confirmation?orderId=${result.orderId}`);
+      router.push("/orders");
     } catch (err) {
       const message =
         err instanceof Error

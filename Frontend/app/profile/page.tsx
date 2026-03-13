@@ -1,6 +1,7 @@
 "use client";
 
 import { logo } from "@/assets";
+import { buildAuthPath } from "@/lib/authRedirect";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/useStore";
@@ -25,7 +26,7 @@ export default function ProfilePage() {
           </p>
           <button
             type="button"
-            onClick={() => router.push("/login")}
+            onClick={() => router.push(buildAuthPath("/login", "/profile"))}
             className="mt-4 inline-flex justify-center py-2 px-6 border border-transparent text-sm font-medium rounded-sm text-white bg-amazonOrange hover:bg-amazonOrangeDark"
           >
             Sign in

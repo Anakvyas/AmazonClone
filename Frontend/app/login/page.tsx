@@ -1,8 +1,9 @@
 "use client";
 
 import { logo } from "@/assets";
-import { useRouter } from "next/navigation";
+import { buildAuthPath, normalizeAuthRedirect } from "@/lib/authRedirect";
 import Image from "next/image";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { useStore } from "@/lib/useStore";
 import toast from "react-hot-toast";
@@ -10,10 +11,12 @@ import GoogleAuthButton from "@/components/GoogleAuthButton";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const login = useStore((state) => state.login);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const redirectPath = normalizeAuthRedirect(searchParams.get("redirect"));
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -32,7 +35,7 @@ export default function LoginPage() {
         password,
       });
       toast.success("Signed in successfully.");
-      router.push("/");
+      router.push(redirectPath);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Unable to sign in. Please try again.";
@@ -102,7 +105,7 @@ export default function LoginPage() {
           >
             Sign in
           </button>
-          <GoogleAuthButton mode="login" />
+          <GoogleAuthButton mode="login" redirectPath={redirectPath} />
           <p className="text-xs text-gray-600">
             By continuing, you agree to the Amazon clone&apos;s Conditions of
             Use and Privacy Notice.
@@ -111,7 +114,7 @@ export default function LoginPage() {
             <p className="text-gray-600 mb-2">New to Amazon?</p>
             <button
               type="button"
-              onClick={() => router.push("/signup")}
+              onClick={() => router.push(buildAuthPath("/signup", redirectPath))}
               className="w-full flex justify-center py-2 px-4 border border-gray-300 text-sm font-medium rounded-sm text-gray-800 bg-gray-50 hover:bg-gray-100"
             >
               Create your Amazon account

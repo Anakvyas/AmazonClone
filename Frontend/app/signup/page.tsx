@@ -1,8 +1,9 @@
 "use client";
 
 import { logo } from "@/assets";
-import { useRouter } from "next/navigation";
+import { buildAuthPath, normalizeAuthRedirect } from "@/lib/authRedirect";
 import Image from "next/image";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { useStore } from "@/lib/useStore";
 import toast from "react-hot-toast";
@@ -10,12 +11,14 @@ import GoogleAuthButton from "@/components/GoogleAuthButton";
 
 export default function SignupPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const signup = useStore((state) => state.signup);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const redirectPath = normalizeAuthRedirect(searchParams.get("redirect"));
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -42,7 +45,7 @@ export default function SignupPage() {
         password,
       });
       toast.success("Account created successfully.");
-      router.push("/");
+      router.push(redirectPath);
     } catch (err) {
       const message =
         err instanceof Error
@@ -144,7 +147,7 @@ export default function SignupPage() {
           >
             Create your Amazon account
           </button>
-          <GoogleAuthButton mode="signup" />
+          <GoogleAuthButton mode="signup" redirectPath={redirectPath} />
           <p className="text-xs text-gray-600">
             By creating an account, you agree to the Amazon clone&apos;s
             Conditions of Use and Privacy Notice.
@@ -152,7 +155,7 @@ export default function SignupPage() {
           <div className="pt-4 border-t border-gray-200 text-center text-sm">
             <button
               type="button"
-              onClick={() => router.push("/login")}
+              onClick={() => router.push(buildAuthPath("/login", redirectPath))}
               className="text-amazonBlue hover:text-amazonOrangeDark"
             >
               Already have an account? Sign in

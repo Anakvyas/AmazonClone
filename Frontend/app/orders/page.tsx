@@ -1,11 +1,65 @@
 "use client";
 
+import { buildAuthPath } from "@/lib/authRedirect";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useStore } from "@/lib/useStore";
 import type { OrderDto } from "@/service/api";
 import { getOrders } from "@/service/api";
+
+function OrdersLoadingSkeleton() {
+  return (
+    <div className="space-y-4">
+      {Array.from({ length: 3 }).map((_, index) => (
+        <div
+          key={index}
+          className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
+        >
+          <div className="grid gap-4 border-b border-gray-200 bg-gray-50 px-5 py-4 md:grid-cols-[repeat(4,minmax(0,1fr))]">
+            {Array.from({ length: 4 }).map((__, metaIndex) => (
+              <div key={metaIndex} className="space-y-2">
+                <div className="h-3 w-20 animate-pulse rounded bg-gray-200" />
+                <div className="h-4 w-24 animate-pulse rounded bg-gray-200" />
+              </div>
+            ))}
+          </div>
+
+          <div className="space-y-4 p-5">
+            <div className="flex items-center justify-between gap-3">
+              <div className="space-y-2">
+                <div className="h-5 w-28 animate-pulse rounded bg-gray-200" />
+                <div className="h-3 w-20 animate-pulse rounded bg-gray-200" />
+              </div>
+              <div className="h-9 w-32 animate-pulse rounded-full bg-gray-200" />
+            </div>
+
+            <div className="space-y-4">
+              {Array.from({ length: 2 }).map((__, itemIndex) => (
+                <div
+                  key={itemIndex}
+                  className="flex flex-col gap-4 rounded-2xl border border-gray-200 p-4 md:flex-row"
+                >
+                  <div className="h-24 w-full animate-pulse rounded-xl bg-gray-100 md:w-24" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-5 w-2/3 animate-pulse rounded bg-gray-200" />
+                    <div className="h-4 w-full animate-pulse rounded bg-gray-100" />
+                    <div className="h-4 w-3/4 animate-pulse rounded bg-gray-100" />
+                    <div className="flex gap-4 pt-1">
+                      <div className="h-4 w-16 animate-pulse rounded bg-gray-200" />
+                      <div className="h-4 w-20 animate-pulse rounded bg-gray-200" />
+                    </div>
+                  </div>
+                  <div className="h-5 w-20 animate-pulse rounded bg-gray-200 md:self-center" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function OrdersPage() {
   const isLoggedIn = useStore((state) => state.isLoggedIn);
@@ -57,7 +111,7 @@ export default function OrdersPage() {
           <p className="text-sm text-gray-600">
             Please{" "}
             <Link
-              href="/login"
+              href={buildAuthPath("/login", "/orders")}
               className="text-amazonBlue hover:text-amazonOrange"
             >
               sign in
@@ -83,9 +137,7 @@ export default function OrdersPage() {
             {orders.length} order{orders.length === 1 ? "" : "s"} found
           </p>
         </div>
-        {loading && (
-          <p className="text-sm text-gray-600">Loading your orders...</p>
-        )}
+        {loading && <OrdersLoadingSkeleton />}
         {error && (
           <p className="text-sm text-red-600" aria-live="polite">
             {error}
